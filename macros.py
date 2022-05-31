@@ -3,12 +3,9 @@ Protocols for sampling structures and analyzing them.
 """
 
 from __future__ import print_function, division
-import sys
-sys.path.append("/home/shreyas/Projects/cgopt/imp-clean/imp/modules/pmi/pyext/src")
-
 import IMP
 import IMP.pmi.tools
-import IMP.pmi.shreyas_samplers
+import IMP.pmi.samplers
 import IMP.pmi.output
 import IMP.pmi.analysis
 import IMP.pmi.io
@@ -106,9 +103,7 @@ class ReplicaExchange0(object):
                  score_moved=False,
                  use_nester=False,
                  nester_restraints=None,
-                 nester_niter=None,
-                 num_nests=1,
-                 num_procs=(os.cpu_count())/2):
+                 nester_niter=None):
         """Constructor.
            @param model The IMP model
            @param root_hier Top-level (System)hierarchy
@@ -260,7 +255,7 @@ class ReplicaExchange0(object):
         self.nest = use_nester
         self.nester_restraints = nester_restraints
         self.nester_niter = nester_niter
-        
+
     def add_geometries(self, geometries):
         if self.vars["geometries"] is None:
             self.vars["geometries"] = list(geometries)
@@ -295,7 +290,7 @@ class ReplicaExchange0(object):
         if iterations == 0 or self.vars["number_of_frames"] == 0:
             return
         iterations *= self.vars["num_sample_rounds"]
-        
+
         pi = self.model.add_particle("sampling")
         p = IMP.core.SampleProvenance.setup_particle(
                 self.model, pi, method, self.vars["number_of_frames"],
@@ -312,12 +307,10 @@ class ReplicaExchange0(object):
         sampler_md = None
         if self.monte_carlo_sample_objects is not None:
             print("Setting up MonteCarlo")
-            sampler_mc = IMP.pmi.shreyas_samplers.MonteCarlo(
+            sampler_mc = IMP.pmi.samplers.MonteCarlo(
                 self.model, self.monte_carlo_sample_objects,
                 self.vars["monte_carlo_temperature"],
                 score_moved=self.score_moved)
-
-# Check whether to run simulated annealing or self adaptive
             if self.vars["simulated_annealing"]:
                 tmin = self.vars["simulated_annealing_minimum_temperature"]
                 tmax = self.vars["simulated_annealing_maximum_temperature"]
@@ -329,18 +322,15 @@ class ReplicaExchange0(object):
             if self.vars["self_adaptive"]:
                 sampler_mc.set_self_adaptive(
                     isselfadaptive=self.vars["self_adaptive"])
-
-# Add the sampler to output objects and rmf output objects
             if self.output_objects is not None:
                 self.output_objects.append(sampler_mc)
             if self.rmf_output_objects is not None:
                 self.rmf_output_objects.append(sampler_mc)
             samplers.append(sampler_mc)
 
-# Related to MD. Can ignore this section for now
         if self.molecular_dynamics_sample_objects is not None:
             print("Setting up MolecularDynamics")
-            sampler_md = IMP.pmi.shreyas_samplers.MolecularDynamics(
+            sampler_md = IMP.pmi.samplers.MolecularDynamics(
                 self.model, self.molecular_dynamics_sample_objects,
                 self.vars["monte_carlo_temperature"],
                 maximum_time_step=self.molecular_dynamics_max_time_step)
@@ -360,7 +350,7 @@ class ReplicaExchange0(object):
 # -------------------------------------------------------------------------
 
         print("Setting up ReplicaExchange")
-        rex = IMP.pmi.shreyas_samplers.ReplicaExchange(
+        rex = IMP.pmi.samplers.ReplicaExchange(
             self.model, self.vars["replica_exchange_minimum_temperature"],
             self.vars["replica_exchange_maximum_temperature"], samplers,
             replica_exchange_object=self.replica_exchange_object)
@@ -493,7 +483,7 @@ class ReplicaExchange0(object):
             output.close_rmf(init_suffix + "." + str(myindex) + ".rmf3")
 
         if not self.test_mode:
-            mpivs = IMP.pmi.shreyas_samplers.MPI_values(self.replica_exchange_object)
+            mpivs = IMP.pmi.samplers.MPI_values(self.replica_exchange_object)
 
         self._add_provenance(sampler_md, sampler_mc)
 
@@ -515,8 +505,6 @@ class ReplicaExchange0(object):
         nframes = self.vars["number_of_frames"]
         if self.test_mode:
             nframes = 1
-
-####
         for i in range(nframes):
             if self.test_mode:
                 score = 0.
@@ -527,10 +515,8 @@ class ReplicaExchange0(object):
                                   self.vars["molecular_dynamics_steps"])
                     if sampler_mc is not None:
                         sampler_mc.optimize(self.vars["monte_carlo_steps"])
-                        
                 score = IMP.pmi.tools.get_restraint_set(
                     self.model).evaluate(False)
-                
                 mpivs.set_value("score", score)
             output.set_output_entry("score", score)
 
@@ -575,11 +561,10 @@ class ReplicaExchange0(object):
                 output.write_stat2(replica_stat_file)
             if self.vars["replica_exchange_swap"]:
                 rex.swap_temp(i, score)
-            
 
         def nester():
             print("Setting up Nester")
-            ns = nested_sampler.nested_sampler(self.model)
+            ns = IMP.pmi.samplers.nested_sampler(self.model)
             ns.monte_carlo_sample_objects = self.monte_carlo_sample_objects
             ns.vars["monte_carlo_temperature"] = self.vars["monte_carlo_temperature"]
             ns.nester_restraints = self.nester_restraints
@@ -613,10 +598,10 @@ class ReplicaExchange0(object):
                 all_Z.append(Z)
                 new_Li = ns.get_new_sample_with_constraint(Li)
                 if new_Li==None:
-                    if self.vars["save_coordinates_mode"] == "lowest_temperature":
-                        save_frame = (min_temp_index == my_temp_index)
-                    if save_frame:
-                        output.write_rmf(rmfname)
+                    # if self.vars["save_coordinates_mode"] == "lowest_temperature":
+                    #     save_frame = (min_temp_index == my_temp_index)
+                    # if save_frame:
+                    #     output.write_rmf(rmfname)
                     break
                 
                 likelihoods.append(new_Li)
@@ -626,71 +611,25 @@ class ReplicaExchange0(object):
                     if save_frame:
                         output.write_rmf(rmfname)
 
-                if len(all_Z)>10_000 and round(all_Z[-1000],4) == round(all_Z[-1],4):
+                if len(all_Z)>5_000 and round(all_Z[-1000],4) == round(all_Z[-1],4):
                     print('Sampling has converged')
                     break
-            all_evidences.append(Z)
+            # all_evidences.append(Z)
             print(f"Last worst likelihood: {Li}\t\tEstimated evidence: {Z}")
             return worst_xi_list,worst_li_list,Z
-                
- 
-        if self.nest:
-            import time
-            import nested_sampler
-            
-            # all_evidences = []
 
-            # for rnd in range(num_rounds):
-            #     processes = []
-            #     for i in range(num_proc):
-            #         process = Process(target=nester) 
-            #         processes.append(process)
-            #         process.start()
-                    
-            #     for proc in processes:
-            #         proc.join() 
-            #     print(f"Completed round {rnd} out of {num_rounds}")
-            #     time.sleep(5)
+
+        if self.nest:
+            # import sys
+            # print(sys.path)
+            # import nested_sampler
 
             worst_xi_list,worst_li_list,Z = nester()
-            # print('List of all evidences:\n',all_evidences)
-            # print('Number of entries in the list of evidences:',len(all_evidences))
 
-            # print(f"Mean of evidence: {np.mean(all_evidences)}\tStandard deviation of evidence: {np.std(all_evidences)}")
-            # x = np.ones(len(all_evidences))
-            
             with open(f"estimated_evidence.dat",'a') as ea:
                 ea.write(f"{Z}\n")
-                # for i in all_evidences:
-                #     ea.write(f"{i}\n")
-            # from matplotlib import pyplot as plt
-            # plt.scatter(x,all_evidences)
-            # plt.savefig(fname=f'{self.vars["global_output_directory"]}/variation_in_estimated_z.png',dpi=400,transparent = False)
-            # return np.mean(np.array(all_evidences))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                
         for p, state in IMP.pmi.tools._all_protocol_outputs(self.root_hier):
             p.add_replica_exchange(state, self)
 
