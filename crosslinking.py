@@ -72,8 +72,9 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
                Common cross-linkers can be found in the `ihm.cross_linkers`
                module.
         """  # noqa: E501
-        self.nest = nest
+
         model = root_hier.get_model()
+
         super(CrossLinkingMassSpectrometryRestraint, self).__init__(
             model, weight=weight, label=label,
             restraint_set_class=_DataRestraintSet)
@@ -122,7 +123,7 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
         self.sigma_dictionary = {}
         self.xl_list = []
         self.outputlevel = "low"
-
+        self.nest = nest
         restraints = []
 
         xl_groups = [p.get_cross_link_group(self)
@@ -171,7 +172,7 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
                 c1 = xl[self.database.protein1_key]
                 r2 = xl[self.database.residue2_key]
                 c2 = xl[self.database.protein2_key]
-                print(c1,r1,c2,r2)
+
                 name1 = c1
                 name2 = c2
                 copy1 = 0
@@ -250,12 +251,6 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
                             length,
                             slope)
                         restraints.append(dr)
-                        # import inspect
-                        # deets = inspect.getmembers(dr)
-                        # for i in deets:
-                        #     if not i[0].startswith('__'):
-                        #         print(i)
-                        # exit()
 
                     if self.database.sigma1_key not in xl.keys():
                         sigma1name = "SIGMA"
@@ -306,7 +301,6 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
                           "particles %s and %s"
                           % (p1.get_name(), p2.get_name()))
                     print("==========================================\n")
-                    
                     for p, ex_xl in zip(IMP.pmi.tools._all_protocol_outputs(
                                                 root_hier),
                                         ex_xls):
@@ -442,31 +436,25 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
            object"""
         output = super(CrossLinkingMassSpectrometryRestraint,
                        self).get_output()
+
         xl_likelihood = 1
         for xl in self.xl_list:
+
             xl_label = xl["ShortLabel"]
             ln = xl["Restraint"]
             p0 = xl["Particle1"]
             p1 = xl["Particle2"]
             output["CrossLinkingMassSpectrometryRestraint_Score_" +
                    xl_label] = str(-log(ln.unprotected_evaluate(None)))
-            
-            # joint_likelihood = ln.unprotected_evaluate(None)
+
             joint_likelihood = xl['Restraint'].get_probability()
             xl_likelihood = xl_likelihood * joint_likelihood
-            # print(f"Unprotected evaluate: {ln.unprotected_evaluate(None) == joint_likelihood}")
-            
-            # print('I guess joint likelihood: ',joint_likelihood)
 
             d0 = IMP.core.XYZ(p0)
             d1 = IMP.core.XYZ(p1)
             output["CrossLinkingMassSpectrometryRestraint_Distance_" +
                    xl_label] = str(IMP.core.get_distance(d0, d1))
-        
-        # import math
-        # print(f"Combined XL likelihood: {xl_likelihoods}\t\tConverted combined XL likelihoods to score: {-math.log(xl_likelihoods)}")
-        # print(f"Combined XL likelihood: {xl_likelihood}")
-        
+
         for psiname in self.psi_dictionary:
             output["CrossLinkingMassSpectrometryRestraint_Psi_" +
                    str(psiname) + self._label_suffix] = str(
@@ -476,16 +464,15 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
             output["CrossLinkingMassSpectrometryRestraint_Sigma_" +
                    str(sigmaname) + self._label_suffix] = str(
                     self.sigma_dictionary[sigmaname][0].get_scale())
+        if self.nest:
+            with open('likelihoods.dat','a') as Lis:
+                Lis.write(f"{str(xl_likelihood)}\n")
 
-        with open('likelihoods.dat','a') as Lis:
-            Lis.write(f"{str(xl_likelihood)}\n")
-        
         return output
-        
 
     def get_likelihood(self):
         xl_likelihood = 1
-        
+
         for xl in self.xl_list:
             xl_label = xl["ShortLabel"]
             ln = xl["Restraint"]
@@ -493,10 +480,8 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
             p1 = xl["Particle2"]
             joint_likelihood = ln.get_probability()
             xl_likelihood = xl_likelihood * joint_likelihood
-            # print(f"Unprotected evaluate: {ln.get_probability()}")
-        
-        return xl_likelihood
 
+        return xl_likelihood
 
     def get_movers(self):
         """ Get all need data to construct a mover in IMP.pmi.dof class"""
