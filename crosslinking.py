@@ -13,7 +13,8 @@ import IMP.pmi.tools
 import IMP.pmi.output
 import IMP.pmi.io.crosslink
 import IMP.pmi.restraints
-from math import log,exp
+from math import log
+from math import exp
 from collections import defaultdict
 import itertools
 import operator
@@ -438,12 +439,14 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
                        self).get_output()
 
         for xl in self.xl_list:
+
             xl_label = xl["ShortLabel"]
             ln = xl["Restraint"]
             p0 = xl["Particle1"]
             p1 = xl["Particle2"]
             output["CrossLinkingMassSpectrometryRestraint_Score_" +
                    xl_label] = str(-log(ln.unprotected_evaluate(None)))
+
             d0 = IMP.core.XYZ(p0)
             d1 = IMP.core.XYZ(p1)
             output["CrossLinkingMassSpectrometryRestraint_Distance_" +
@@ -458,6 +461,7 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
             output["CrossLinkingMassSpectrometryRestraint_Sigma_" +
                    str(sigmaname) + self._label_suffix] = str(
                     self.sigma_dictionary[sigmaname][0].get_scale())
+
         if self.nest:
             out_wo_wt = super(CrossLinkingMassSpectrometryRestraint,
                            self).get_output_to_nest()
@@ -466,6 +470,7 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
                     likelihood = exp(-float(out_wo_wt[k]))
             with open('likelihoods.dat','a') as Lis:
                 Lis.write(f"{str(likelihood)}\n")
+
         return output
 
     def get_likelihood(self):

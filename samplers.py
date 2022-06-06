@@ -8,6 +8,10 @@ import IMP
 import IMP.core
 from IMP.pmi.tools import get_restraint_set
 
+'''
+1. Include nester() from macros.py here
+2. Instead of sampler_mc, use rex macro
+'''
 
 class nested_sampler():
     # check that isd is installed
@@ -18,14 +22,15 @@ class nested_sampler():
         isd_available = False
 
 
-    def __init__(self, model):
-        self.model = model
+    def __init__(self,rex):
+        self.rex = rex
+        self.model = rex.model
         self.li_fname = "likelihoods.dat"
         self.monte_carlo_sample_objects = None
         self.vars = {}
         self.nester_restraints = None
         self.nester_niter = None
-
+        
     def parse_likelihoods(self):
         likelihoods = []
         with open(self.li_fname,'r') as Lif:
@@ -35,30 +40,97 @@ class nested_sampler():
         return likelihoods
 
     def get_new_sample_with_constraint(self,worst_likelihood):
-        # print(f"Worst likelihood: {worst_likelihood}")
-        sampler_mc = IMP.pmi.samplers.MonteCarlo(
-                        self.model, self.monte_carlo_sample_objects,
-                        self.vars["monte_carlo_temperature"])
-        
+        # sampler_mc = IMP.pmi.samplers.MonteCarlo(
+        #                 self.model, self.monte_carlo_sample_objects,
+        #                 self.vars["monte_carlo_temperature"])
+
+        self.rex.nest = False
+        self.rex.vars["number_of_frames"] = 10
+        self.rex.nest_internal = True
+
         curr_li = 0
         early_stopper_limit = 5_000
         es = 0
         while es < early_stopper_limit:
-            sampler_mc.optimize(1)
-            Li = 1
-            for restraint in self.nester_restraints:
-                Li = Li*restraint.get_likelihood()
-            curr_li=Li
+            # sampler_mc.optimize(1)
+            self.rex.execute_macro()
+            self.newly_sampled_likelihoods = self.rex.sampled_likelihoods
+            
+            # Li = 1
+            # for restraint in self.nester_restraints:
+            #     Li = Li*restraint.get_likelihood()
+            curr_li=min(self.newly_sampled_likelihoods)
             
             if curr_li > float(worst_likelihood):
-               return curr_li
+                print(f"----- On the right path...")
+                return curr_li
             else:
+                print("----- Oops bad samples")
                 es += 1
                 if es%1000==0:
-                    print(f"es_count: {es}\tWorst likelihood: {worst_likelihood}\tattempted_li: {Li}")        
+                    print(f"es_count: {es}")        
         print("Ealy stopper triggered")
         return None
-        
+
+    def nester(self):
+            likelihoods = self.parse_likelihoods()
+            Xi = 1
+            Z = 0
+            worst_li_list = []
+            worst_xi_list = []
+            all_Z = []
+            print("Intiating nesting")
+            for i in range(self.nester_niter):
+                # First, get the Wi
+                curr_Xi = np.exp((-1*i) / self.vars["number_of_frames"])
+                Wi = Xi - curr_Xi
+
+                # Then, get the worst likelihood and replace it 
+                Li = min(likelihoods)
+                likelihoods.remove(Li)
+
+                # Collect Z
+                Z += np.float(Li)*np.float(Wi)
+                Xi = curr_Xi
+                
+                if i%10==0:
+                    print("============================================================"*2)
+                    print(f"----- Iteration {i}:\t\tWorst likelihood:{Li}\t\tEstimated evidence:{Z}")
+                    print("============================================================"*2)
+
+                worst_li_list.append(Li)
+                worst_xi_list.append(Xi)
+                all_Z.append(Z)
+                new_Li = self.get_new_sample_with_constraint(Li)
+                # print(f"newLi {new_Li}")
+                if new_Li==None:
+                    break
+                
+                likelihoods.append(new_Li)
+                
+                # if self.vars["save_coordinates_mode"] == "lowest_temperature":
+                #     save_frame = (min_temp_index == my_temp_index)
+                #     if save_frame:
+                #         output.write_rmf(rmfname)
+
+                if len(all_Z)>5_000 and round(all_Z[-1000],4) == round(all_Z[-1],4):
+                    print('Sampling has converged')
+                    break
+            # all_evidences.append(Z)
+            print(f"Last worst likelihood: {Li}\t\tEstimated evidence: {Z}")
+            return worst_xi_list,worst_li_list,Z
+
+
+
+
+
+
+
+
+
+
+
+
 
 class _SerialReplicaExchange(object):
     """Dummy replica exchange class used in non-MPI builds.

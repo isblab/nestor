@@ -255,6 +255,7 @@ class ReplicaExchange0(object):
         self.nest = use_nester
         self.nester_restraints = nester_restraints
         self.nester_niter = nester_niter
+        self.nest_internal = False
 
     def add_geometries(self, geometries):
         if self.vars["geometries"] is None:
@@ -306,7 +307,8 @@ class ReplicaExchange0(object):
         sampler_mc = None
         sampler_md = None
         if self.monte_carlo_sample_objects is not None:
-            print("Setting up MonteCarlo")
+            if not self.nest_internal:
+                print("Setting up MonteCarlo")
             sampler_mc = IMP.pmi.samplers.MonteCarlo(
                 self.model, self.monte_carlo_sample_objects,
                 self.vars["monte_carlo_temperature"],
@@ -349,7 +351,8 @@ class ReplicaExchange0(object):
             samplers.append(sampler_md)
 # -------------------------------------------------------------------------
 
-        print("Setting up ReplicaExchange")
+        if not self.nest_internal: 
+            print("Setting up ReplicaExchange")
         rex = IMP.pmi.samplers.ReplicaExchange(
             self.model, self.vars["replica_exchange_minimum_temperature"],
             self.vars["replica_exchange_maximum_temperature"], samplers,
@@ -372,7 +375,7 @@ class ReplicaExchange0(object):
         rmf_dir = globaldir + self.vars["rmf_dir"]
         pdb_dir = globaldir + self.vars["best_pdb_dir"]
 
-        if not self.test_mode:
+        if not self.test_mode and not self.nest_internal:
             if self.vars["do_clean_first"]:
                 pass
 
@@ -407,16 +410,17 @@ class ReplicaExchange0(object):
         if self.rmf_output_objects is not None:
             self.rmf_output_objects.append(sw)
 
-        print("Setting up stat file")
-        output = IMP.pmi.output.Output(atomistic=self.vars["atomistic"])
-        low_temp_stat_file = globaldir + \
-            self.vars["stat_file_name_suffix"] + "." + str(myindex) + ".out"
+        if not self.nest_internal:
+            print("Setting up stat file")
+            output = IMP.pmi.output.Output(atomistic=self.vars["atomistic"])
+            low_temp_stat_file = globaldir + \
+                self.vars["stat_file_name_suffix"] + "." + str(myindex) + ".out"
 
         # Ensure model is updated before saving init files
         if not self.test_mode:
             self.model.update()
 
-        if not self.test_mode:
+        if not self.test_mode and not self.nest_internal:
             if self.output_objects is not None:
                 output.init_stat2(low_temp_stat_file,
                                   self.output_objects,
@@ -430,10 +434,10 @@ class ReplicaExchange0(object):
         print("Setting up replica stat file")
         replica_stat_file = globaldir + \
             self.vars["replica_stat_file_suffix"] + "." + str(myindex) + ".out"
-        if not self.test_mode:
+        if not self.test_mode and not self.nest_internal:
             output.init_stat2(replica_stat_file, [rex], extralabels=["score"])
 
-        if not self.test_mode:
+        if not self.test_mode and not self.nest_internal:
             print("Setting up best pdb files")
             if not self.is_multi_state:
                 if self.vars["number_of_best_scoring_models"] > 0:
@@ -469,7 +473,7 @@ class ReplicaExchange0(object):
         else:
             output_hierarchies = [self.root_hier]
 
-        if not self.test_mode:
+        if not self.test_mode and not self.nest_internal:
             print("Setting up and writing initial rmf coordinate file")
             init_suffix = globaldir + self.vars["initial_rmf_name_suffix"]
             output.init_rmf(init_suffix + "." + str(myindex) + ".rmf3",
@@ -487,7 +491,7 @@ class ReplicaExchange0(object):
 
         self._add_provenance(sampler_md, sampler_mc)
 
-        if not self.test_mode:
+        if not self.test_mode and not self.nest_internal:
             print("Setting up production rmf files")
             rmfname = rmf_dir + "/" + str(myindex) + ".rmf3"
             output.init_rmf(rmfname, output_hierarchies,
@@ -499,12 +503,14 @@ class ReplicaExchange0(object):
 
         ntimes_at_low_temp = 0
 
-        if myindex == 0:
+        if myindex == 0 and not self.nest_internal:
             self.show_info()
         self.replica_exchange_object.set_was_used(True)
         nframes = self.vars["number_of_frames"]
         if self.test_mode:
             nframes = 1
+
+        self.sampled_likelihoods = []
         for i in range(nframes):
             if self.test_mode:
                 score = 0.
@@ -518,7 +524,8 @@ class ReplicaExchange0(object):
                 score = IMP.pmi.tools.get_restraint_set(
                     self.model).evaluate(False)
                 mpivs.set_value("score", score)
-            output.set_output_entry("score", score)
+            if not self.nest_internal:
+                output.set_output_entry("score", score)
 
             my_temp_index = int(rex.get_my_temp() * temp_index_factor)
 
@@ -538,10 +545,10 @@ class ReplicaExchange0(object):
             if save_frame and not self.test_mode:
                 self.model.update()
 
-            if save_frame:
+            if save_frame and not self.nest_internal:
                 print("--- frame %s score %s " % (str(i), str(score)))
 
-                if not self.test_mode:
+                if not self.test_mode and not self.nest_internal:
                     if i % self.vars["nframes_write_coordinates"] == 0:
                         print('--- writing coordinates')
                         if self.vars["number_of_best_scoring_models"] > 0:
@@ -557,83 +564,36 @@ class ReplicaExchange0(object):
                         output.write_stat2(low_temp_stat_file)
                 ntimes_at_low_temp += 1
 
-            if not self.test_mode:
+            if not self.test_mode and not self.nest_internal:
                 output.write_stat2(replica_stat_file)
             if self.vars["replica_exchange_swap"]:
                 rex.swap_temp(i, score)
+        
+            if self.nest_internal:
+                likelihood_for_sample = 1
+                for rstrnt in self.nester_restraints:
+                    likelihood_for_sample = likelihood_for_sample * rstrnt.get_likelihood()
+                if i%10==0 and i!=0:
+                    print(f"--- Nested sampling frame: {str(i)}\tSampled likelihood: {str(likelihood_for_sample)}")
+                self.sampled_likelihoods.append(likelihood_for_sample)
 
-        def nester():
+
+        if self.nest and not self.nest_internal:
             print("Setting up Nester")
-            ns = IMP.pmi.samplers.nested_sampler(self.model)
+            ns = IMP.pmi.samplers.nested_sampler(self)
             ns.monte_carlo_sample_objects = self.monte_carlo_sample_objects
             ns.vars["monte_carlo_temperature"] = self.vars["monte_carlo_temperature"]
+            ns.vars["number_of_frames"] = self.vars["number_of_frames"]
             ns.nester_restraints = self.nester_restraints
             ns.nester_niter = self.nester_niter
-            likelihoods = ns.parse_likelihoods()
+            ns.vars["save_coordinates_mode"] = self.vars["save_coordinates_mode"]
+            worst_xi_list,worst_li_list,Z = ns.nester()
+            
 
-            Xi = 1
-            Z = 0
-            worst_li_list = []
-            worst_xi_list = []
-            all_Z = []
-            print("Intiating nesting")
-            for i in range(self.nester_niter):
-                # First, get the Wi
-                curr_Xi = np.exp((-1*i) / self.vars["number_of_frames"])
-                Wi = Xi - curr_Xi
-
-                # Then, get the worst likelihood and replace it 
-                Li = min(ns.likelihoods)
-                likelihoods.remove(Li)
-
-                # Collect Z
-                Z += np.float(Li)*np.float(Wi)
-                Xi = curr_Xi
-                
-                if i%10==0:
-                    print(f"Iteration {i}:\t\tWorst likelihood:{Li}")
-
-                worst_li_list.append(Li)
-                worst_xi_list.append(Xi)
-                all_Z.append(Z)
-                new_Li = ns.get_new_sample_with_constraint(Li)
-                if new_Li==None:
-                    # if self.vars["save_coordinates_mode"] == "lowest_temperature":
-                    #     save_frame = (min_temp_index == my_temp_index)
-                    # if save_frame:
-                    #     output.write_rmf(rmfname)
-                    break
-                
-                likelihoods.append(new_Li)
-                
-                if self.vars["save_coordinates_mode"] == "lowest_temperature":
-                    save_frame = (min_temp_index == my_temp_index)
-                    if save_frame:
-                        output.write_rmf(rmfname)
-
-                if len(all_Z)>5_000 and round(all_Z[-1000],4) == round(all_Z[-1],4):
-                    print('Sampling has converged')
-                    break
-            # all_evidences.append(Z)
-            print(f"Last worst likelihood: {Li}\t\tEstimated evidence: {Z}")
-            return worst_xi_list,worst_li_list,Z
-
-
-        if self.nest:
-            # import sys
-            # print(sys.path)
-            # import nested_sampler
-
-            worst_xi_list,worst_li_list,Z = nester()
-
-            with open(f"estimated_evidence.dat",'a') as ea:
-                ea.write(f"{Z}\n")
-
-                
         for p, state in IMP.pmi.tools._all_protocol_outputs(self.root_hier):
             p.add_replica_exchange(state, self)
 
-        if not self.test_mode:
+        if not self.test_mode and not self.nest_internal:
             print("closing production rmf files")
             output.close_rmf(rmfname)
 
