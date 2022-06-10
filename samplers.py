@@ -4,9 +4,11 @@
 
 from __future__ import print_function
 import numpy as np
+from math import log
 import IMP
 import IMP.core
 from IMP.pmi.tools import get_restraint_set
+from matplotlib import pyplot as plt
 
 '''
 1. Include nester() from macros.py here
@@ -22,114 +24,125 @@ class nested_sampler():
         isd_available = False
 
 
-    def __init__(self,rex):
-        self.rex = rex
-        self.model = rex.model
-        self.li_fname = "likelihoods.dat"
-        self.monte_carlo_sample_objects = None
-        self.vars = {}
-        self.nester_restraints = None
+    def __init__(self):
+        self.num_frames = 10
         self.nester_niter = None
+        self.ere_threshold = 0.01
+        self.stopper_hits = 0
+        self.stopper_cap = 100
         
-    def parse_likelihoods(self):
-        likelihoods = []
-        with open(self.li_fname,'r') as Lif:
-            for line in Lif:
-                likelihoods.append(np.float(line.strip()))
-        self.likelihoods=likelihoods
-        return likelihoods
-
     def get_new_sample_with_constraint(self,worst_likelihood):
-        # sampler_mc = IMP.pmi.samplers.MonteCarlo(
-        #                 self.model, self.monte_carlo_sample_objects,
-        #                 self.vars["monte_carlo_temperature"])
-
-        self.rex.nest = False
-        self.rex.vars["number_of_frames"] = 10
-        self.rex.nest_internal = True
-
+        self.rex_macro.vars["number_of_frames"] = self.num_frames
+        
         curr_li = 0
-        early_stopper_limit = 5_000
+        early_stopper_limit = 100
         es = 0
         while es < early_stopper_limit:
-            # sampler_mc.optimize(1)
-            self.rex.execute_macro()
-            self.newly_sampled_likelihoods = self.rex.sampled_likelihoods
+            self.rex_macro.execute_macro()
+            self.newly_sampled_likelihoods = self.rex_macro.sampled_likelihoods
             
-            # Li = 1
-            # for restraint in self.nester_restraints:
-            #     Li = Li*restraint.get_likelihood()
-            curr_li=min(self.newly_sampled_likelihoods)
-            
-            if curr_li > float(worst_likelihood):
-                print(f"----- On the right path...")
-                return curr_li
+            self.nsgl = []              # newly sampled good likelihoods
+            for li in self.newly_sampled_likelihoods:
+                if li > float(worst_likelihood):
+                    self.nsgl.append(li)
+            if len(self.nsgl)>0:
+                curr_li=min(self.nsgl)
+                if curr_li > float(worst_likelihood):
+                    return curr_li
+                else:
+                    es += 1
             else:
-                print("----- Oops bad samples")
                 es += 1
-                if es%1000==0:
-                    print(f"es_count: {es}")        
+            if es%1==0:
+                print(f"---------------------------\nes_count: {es} at temperature {self.at_temperature}\n---------------------------")
+                
         print("Ealy stopper triggered")
-        return None
+        self.write_output()
+        
+    def estimate_unsampled_evidence(self):
+        max_li = max(self.likelihoods)
+        sampled_till_xi = self.Xi
+        unsampled_evidence = max_li * sampled_till_xi
+        return unsampled_evidence
+
+    def check_stopper_ere(self):
+        rhs_ere = log(self.Z + self.estimate_unsampled_evidence()) - log(self.Z)
+        return rhs_ere
+
+    def check_stopper(self):
+        '''
+        Check if Li is rising considerably as a function of Xi  
+        '''
+        ere_val = self.check_stopper_ere()
+        print(f"ERE:{self.check_stopper_ere()}")
+        if ere_val < self.ere_threshold:
+            print(f"{'---'*20}\nCurrent stopper hits: {self.stopper_hits}/{self.stopper_cap} at temperature index {self.at_temperature}")
+            previous_Li = self.worst_li_list[-2]
+            current_Li = self.worst_li_list[-1]
+            previous_Xi = self.worst_xi_list[-2]
+            current_Xi = self.worst_xi_list[-1]
+
+            lhs = current_Li/previous_Li
+            rhs = previous_Xi/current_Xi
+            if lhs<rhs:
+                self.stopper_hits += 1
+            else:
+                self.stopper_hits = 0
+
+            if self.stopper_hits >= self.stopper_cap:
+                self.write_output()
 
     def nester(self):
-            likelihoods = self.parse_likelihoods()
-            Xi = 1
-            Z = 0
-            worst_li_list = []
-            worst_xi_list = []
-            all_Z = []
-            print("Intiating nesting")
-            for i in range(self.nester_niter):
-                # First, get the Wi
-                curr_Xi = np.exp((-1*i) / self.vars["number_of_frames"])
-                Wi = Xi - curr_Xi
+        from matplotlib import pyplot as plt
+        # self.nester_niter = 50#REMOVE
+        print(f"Building nest with {self.rex_macro.vars['number_of_frames']} samples")
+        self.at_temperature = self.rex_macro.execute_macro()
+        self.likelihoods = self.rex_macro.sampled_likelihoods 
 
-                # Then, get the worst likelihood and replace it 
-                Li = min(likelihoods)
-                likelihoods.remove(Li)
+        self.Xi = 1
+        self.Z = 0
+        self.worst_li_list = []
+        self.worst_xi_list = []
+        all_Z = []
+        delta_xis = []
+        delta_lis = []
+        print(f"Intiating nesting\tInitial pool size is: {len(self.likelihoods)}")
+        for i in range(self.nester_niter):
+            # First, get the Wi
+            curr_Xi = np.exp((-1*i) / self.num_frames)
+            Wi = self.Xi - curr_Xi
 
-                # Collect Z
-                Z += np.float(Li)*np.float(Wi)
-                Xi = curr_Xi
-                
-                if i%10==0:
-                    print("============================================================"*2)
-                    print(f"----- Iteration {i}:\t\tWorst likelihood:{Li}\t\tEstimated evidence:{Z}")
-                    print("============================================================"*2)
+            # Then, get the worst likelihood and replace it 
+            Li = min(self.likelihoods)
+            self.likelihoods.remove(Li)
 
-                worst_li_list.append(Li)
-                worst_xi_list.append(Xi)
-                all_Z.append(Z)
-                new_Li = self.get_new_sample_with_constraint(Li)
-                # print(f"newLi {new_Li}")
-                if new_Li==None:
-                    break
-                
-                likelihoods.append(new_Li)
-                
-                # if self.vars["save_coordinates_mode"] == "lowest_temperature":
-                #     save_frame = (min_temp_index == my_temp_index)
-                #     if save_frame:
-                #         output.write_rmf(rmfname)
-
-                if len(all_Z)>5_000 and round(all_Z[-1000],4) == round(all_Z[-1],4):
-                    print('Sampling has converged')
-                    break
-            # all_evidences.append(Z)
-            print(f"Last worst likelihood: {Li}\t\tEstimated evidence: {Z}")
-            return worst_xi_list,worst_li_list,Z
-
-
-
-
-
-
-
-
-
-
-
+            # Collect Z
+            self.Z += np.float(Li)*np.float(Wi)
+            self.Xi = curr_Xi
+            print(f"{'==='*50}\
+                \nIteration {i}:\nWorst likelihood:{Li}\t\tat Xi:{curr_Xi}\t\tEstimated evidence:{self.Z}\t\tat temperature index:{self.at_temperature}\
+                \n{'==='*50}")
+        
+            self.worst_li_list.append(Li)
+            self.worst_xi_list.append(self.Xi)
+            all_Z.append(self.Z)
+            new_Li = self.get_new_sample_with_constraint(Li)
+            
+            if new_Li==None:
+                self.write_output()
+            
+            self.likelihoods.append(new_Li)
+            if len(all_Z)>5:
+                self.check_stopper()
+        self.write_output()
+        
+    def write_output(self):
+        unsampled_evidence = self.estimate_unsampled_evidence()
+        total_evidence = unsampled_evidence + self.Z
+        print(f"Estimated evidence: sampled={self.Z} and total={total_evidence}")
+        with open("estimated_evidence.dat",'a') as eedat:
+            eedat.write(f"{self.at_temperature} : {total_evidence}\n")
+        exit()
 
 
 class _SerialReplicaExchange(object):
@@ -713,6 +726,7 @@ class ReplicaExchange(object):
 
         # try exchange
         flag = self.rem.do_exchange(myscore, fscore, findex)
+        # print(f"\n___________***Replica exchange successful...! Exchanged between {self.rem.get_my_index()} and {findex}***___________\n")
 
         self.nattempts += 1
         # if accepted, change temperature

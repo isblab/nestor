@@ -102,8 +102,7 @@ class ReplicaExchange0(object):
                  test_mode=False,
                  score_moved=False,
                  use_nester=False,
-                 nester_restraints=None,
-                 nester_niter=None):
+                 nester_restraints=None):
         """Constructor.
            @param model The IMP model
            @param root_hier Top-level (System)hierarchy
@@ -252,11 +251,9 @@ class ReplicaExchange0(object):
         self.vars["geometries"] = None
         self.test_mode = test_mode
         self.score_moved = score_moved
-        self.nest = use_nester
-        self.nester_restraints = nester_restraints
-        self.nester_niter = nester_niter
-        self.nest_internal = False
-
+        self.nest = False
+        self.nester_restraints = None
+        
     def add_geometries(self, geometries):
         if self.vars["geometries"] is None:
             self.vars["geometries"] = list(geometries)
@@ -274,6 +271,8 @@ class ReplicaExchange0(object):
         keys.sort()
         for v in keys:
             print("------", v.ljust(30), self.vars[v])
+        print("Use nester", self.nest)
+        print(self.nester_restraints)
 
     def get_replica_exchange_object(self):
         return self.replica_exchange_object
@@ -307,8 +306,7 @@ class ReplicaExchange0(object):
         sampler_mc = None
         sampler_md = None
         if self.monte_carlo_sample_objects is not None:
-            if not self.nest_internal:
-                print("Setting up MonteCarlo")
+            print("Setting up MonteCarlo")
             sampler_mc = IMP.pmi.samplers.MonteCarlo(
                 self.model, self.monte_carlo_sample_objects,
                 self.vars["monte_carlo_temperature"],
@@ -350,9 +348,8 @@ class ReplicaExchange0(object):
                 self.rmf_output_objects.append(sampler_md)
             samplers.append(sampler_md)
 # -------------------------------------------------------------------------
-
-        if not self.nest_internal: 
-            print("Setting up ReplicaExchange")
+        
+        print("Setting up ReplicaExchange")
         rex = IMP.pmi.samplers.ReplicaExchange(
             self.model, self.vars["replica_exchange_minimum_temperature"],
             self.vars["replica_exchange_maximum_temperature"], samplers,
@@ -375,7 +372,7 @@ class ReplicaExchange0(object):
         rmf_dir = globaldir + self.vars["rmf_dir"]
         pdb_dir = globaldir + self.vars["best_pdb_dir"]
 
-        if not self.test_mode and not self.nest_internal:
+        if not self.test_mode and not self.nest:
             if self.vars["do_clean_first"]:
                 pass
 
@@ -410,7 +407,7 @@ class ReplicaExchange0(object):
         if self.rmf_output_objects is not None:
             self.rmf_output_objects.append(sw)
 
-        if not self.nest_internal:
+        if not self.nest:
             print("Setting up stat file")
             output = IMP.pmi.output.Output(atomistic=self.vars["atomistic"])
             low_temp_stat_file = globaldir + \
@@ -420,24 +417,22 @@ class ReplicaExchange0(object):
         if not self.test_mode:
             self.model.update()
 
-        if not self.test_mode and not self.nest_internal:
+        if not self.test_mode and not self.nest:
             if self.output_objects is not None:
                 output.init_stat2(low_temp_stat_file,
                                   self.output_objects,
                                   extralabels=["rmf_file", "rmf_frame_index"])
-        else:
-            print("Stat file writing is disabled")
+        # else:
+        #     print("Stat file writing is disabled")
 
         if self.rmf_output_objects is not None:
             print("Stat info being written in the rmf file")
-
-        print("Setting up replica stat file")
-        replica_stat_file = globaldir + \
-            self.vars["replica_stat_file_suffix"] + "." + str(myindex) + ".out"
-        if not self.test_mode and not self.nest_internal:
+        if not self.test_mode and not self.nest:    
+            print("Setting up replica stat file")
+            replica_stat_file = globaldir + \
+                self.vars["replica_stat_file_suffix"] + "." + str(myindex) + ".out"
             output.init_stat2(replica_stat_file, [rex], extralabels=["score"])
 
-        if not self.test_mode and not self.nest_internal:
             print("Setting up best pdb files")
             if not self.is_multi_state:
                 if self.vars["number_of_best_scoring_models"] > 0:
@@ -473,7 +468,7 @@ class ReplicaExchange0(object):
         else:
             output_hierarchies = [self.root_hier]
 
-        if not self.test_mode and not self.nest_internal:
+        if not self.test_mode and not self.nest:
             print("Setting up and writing initial rmf coordinate file")
             init_suffix = globaldir + self.vars["initial_rmf_name_suffix"]
             output.init_rmf(init_suffix + "." + str(myindex) + ".rmf3",
@@ -491,7 +486,7 @@ class ReplicaExchange0(object):
 
         self._add_provenance(sampler_md, sampler_mc)
 
-        if not self.test_mode and not self.nest_internal:
+        if not self.test_mode and not self.nest:
             print("Setting up production rmf files")
             rmfname = rmf_dir + "/" + str(myindex) + ".rmf3"
             output.init_rmf(rmfname, output_hierarchies,
@@ -502,9 +497,10 @@ class ReplicaExchange0(object):
                 output.add_restraints_to_rmf(rmfname, self._rmf_restraints)
 
         ntimes_at_low_temp = 0
-
-        if myindex == 0 and not self.nest_internal:
+        
+        if myindex == 0 and not self.nest:
             self.show_info()
+            
         self.replica_exchange_object.set_was_used(True)
         nframes = self.vars["number_of_frames"]
         if self.test_mode:
@@ -523,12 +519,20 @@ class ReplicaExchange0(object):
                         sampler_mc.optimize(self.vars["monte_carlo_steps"])
                 score = IMP.pmi.tools.get_restraint_set(
                     self.model).evaluate(False)
+
+                if self.nest:
+                    likelihood_for_sample = 1
+                    for rstrnt in self.nester_restraints:
+                        likelihood_for_sample = likelihood_for_sample * rstrnt.get_likelihood()
+                    self.sampled_likelihoods.append(likelihood_for_sample)
+                    if i%10==0 and i!=0:
+                        print(f"--- Nested sampling frame: {str(i)}")#\tHighest sampled likelihood: {str(max(likelihood_for_sample))}")
+                        
                 mpivs.set_value("score", score)
-            if not self.nest_internal:
+            if not self.nest:
                 output.set_output_entry("score", score)
-
+            
             my_temp_index = int(rex.get_my_temp() * temp_index_factor)
-
             if self.vars["save_coordinates_mode"] == "lowest_temperature":
                 save_frame = (min_temp_index == my_temp_index)
             elif self.vars["save_coordinates_mode"] == "25th_score":
@@ -545,10 +549,10 @@ class ReplicaExchange0(object):
             if save_frame and not self.test_mode:
                 self.model.update()
 
-            if save_frame and not self.nest_internal:
+            if save_frame and not self.nest:
                 print("--- frame %s score %s " % (str(i), str(score)))
 
-                if not self.test_mode and not self.nest_internal:
+                if not self.test_mode and not self.nest:
                     if i % self.vars["nframes_write_coordinates"] == 0:
                         print('--- writing coordinates')
                         if self.vars["number_of_best_scoring_models"] > 0:
@@ -564,39 +568,36 @@ class ReplicaExchange0(object):
                         output.write_stat2(low_temp_stat_file)
                 ntimes_at_low_temp += 1
 
-            if not self.test_mode and not self.nest_internal:
+                
+            if not self.test_mode and not self.nest:
                 output.write_stat2(replica_stat_file)
             if self.vars["replica_exchange_swap"]:
                 rex.swap_temp(i, score)
         
-            if self.nest_internal:
-                likelihood_for_sample = 1
-                for rstrnt in self.nester_restraints:
-                    likelihood_for_sample = likelihood_for_sample * rstrnt.get_likelihood()
-                if i%10==0 and i!=0:
-                    print(f"--- Nested sampling frame: {str(i)}\tSampled likelihood: {str(likelihood_for_sample)}")
-                self.sampled_likelihoods.append(likelihood_for_sample)
-
-
-        if self.nest and not self.nest_internal:
-            print("Setting up Nester")
-            ns = IMP.pmi.samplers.nested_sampler(self)
-            ns.monte_carlo_sample_objects = self.monte_carlo_sample_objects
-            ns.vars["monte_carlo_temperature"] = self.vars["monte_carlo_temperature"]
-            ns.vars["number_of_frames"] = self.vars["number_of_frames"]
-            ns.nester_restraints = self.nester_restraints
-            ns.nester_niter = self.nester_niter
-            ns.vars["save_coordinates_mode"] = self.vars["save_coordinates_mode"]
-            worst_xi_list,worst_li_list,Z = ns.nester()
-            
-
         for p, state in IMP.pmi.tools._all_protocol_outputs(self.root_hier):
             p.add_replica_exchange(state, self)
 
-        if not self.test_mode and not self.nest_internal:
+        if not self.test_mode and not self.nest:
             print("closing production rmf files")
             output.close_rmf(rmfname)
+        return rex.rem.get_my_index() 
+        # rex.get_my_temp()
 
+
+class NestedSampling():
+    def __init__(self,num_frames,nester_niter,nester_restraints,rex_macro):
+        self.ns = IMP.pmi.samplers.nested_sampler()
+        self.ns.num_frames = num_frames
+        self.ns.nester_niter = nester_niter
+        self.ns.rex_macro = rex_macro
+        self.ns.rex_macro.nest = True
+        self.ns.rex_macro.nester_restraints = nester_restraints
+
+    def execute_nested_sampling(self):
+        print("Starting Nester")
+        # worst_xi_list,worst_li_list,Z = 
+        self.ns.nester()
+    
 
 class BuildSystem(object):
     """A macro to build a IMP::pmi::topology::System based on a
