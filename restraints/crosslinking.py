@@ -439,7 +439,6 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
                        self).get_output()
 
         for xl in self.xl_list:
-
             xl_label = xl["ShortLabel"]
             ln = xl["Restraint"]
             p0 = xl["Particle1"]
@@ -461,25 +460,33 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
             output["CrossLinkingMassSpectrometryRestraint_Sigma_" +
                    str(sigmaname) + self._label_suffix] = str(
                     self.sigma_dictionary[sigmaname][0].get_scale())
-
-        if self.nest:
-            out_wo_wt = super(CrossLinkingMassSpectrometryRestraint,
-                           self).get_output_to_nest()
-            for k in out_wo_wt:
-                if 'Data' in k:
-                    likelihood = exp(-float(out_wo_wt[k]))
-            with open('likelihoods.dat','a') as Lis:
-                Lis.write(f"{str(likelihood)}\n")
-
         return output
 
-    def get_likelihood(self):
+    def get_likelihood_old(self):
         out_wo_wt = super(CrossLinkingMassSpectrometryRestraint,
                        self).get_output_to_nest()
+        
         for k in out_wo_wt:
             if 'Data' in k:
+                print(float(out_wo_wt[k]))
                 xl_likelihood = exp(-float(out_wo_wt[k]))
         return xl_likelihood
+
+    def get_likelihood(self):
+        # out_wo_wt = super(CrossLinkingMassSpectrometryRestraint,
+        #                self).get_output_to_nest()
+        # for k in out_wo_wt:
+        #     if 'Data' in k:
+        #         print(float(out_wo_wt[k]))
+        #         xl_likelihood = exp(-float(out_wo_wt[k]))
+
+        likelihood = 1
+        for restraint in self.xl_restraints:
+            likelihood *= restraint.get_probability()
+
+        # print('-------------------------------------------------------------------------->  ',xl_likelihood,likelihood)
+        return likelihood
+        
 
     def get_movers(self):
         """ Get all need data to construct a mover in IMP.pmi.dof class"""
