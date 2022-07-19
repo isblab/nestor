@@ -48,7 +48,7 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
 
     def __init__(self, root_hier, database=None, length=10.0, resolution=None,
                  slope=0.02, label=None, filelabel="None",
-                 attributes_for_label=None, linker=None, weight=1.,nest=False):
+                 attributes_for_label=None, linker=None, weight=1.):
         """Constructor.
         @param root_hier The canonical hierarchy containing all the states
         @param database The IMP.pmi.io.crosslink.CrossLinkDataBase
@@ -124,7 +124,6 @@ class CrossLinkingMassSpectrometryRestraint(IMP.pmi.restraints.RestraintBase):
         self.sigma_dictionary = {}
         self.xl_list = []
         self.outputlevel = "low"
-        self.nest = nest
         restraints = []
 
         xl_groups = [p.get_cross_link_group(self)
