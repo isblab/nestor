@@ -3,19 +3,20 @@
 """
 
 from __future__ import print_function
-import numpy as np
-from math import log
+import os
+import glob
+import pickle
+import signal
+# import numpy as np
+from math import log,exp
+from mpi4py import MPI
+import RMF
 import IMP
 import IMP.core
 from IMP.pmi.tools import get_restraint_set
-from matplotlib import pyplot as plt
 
-'''
-1. Include nester() from macros.py here
-2. Instead of sampler_mc, use rex macro
-'''
 
-class nested_sampler():
+class NestedSampler():
     # check that isd is installed
     try:
         import IMP.isd
@@ -25,124 +26,148 @@ class nested_sampler():
 
 
     def __init__(self):
-        self.num_frames = 10
-        self.nester_niter = None
-        self.ere_threshold = 0.01
+        self.num_init_frames = None
+        self.min_pool = 10
+        self.num_frames_per_iter = 10
+        self.nester_niter = 10_000
+        self.avg_li = 0
+        self.stopper_cap = 50
         self.stopper_hits = 0
-        self.stopper_cap = 100
+        self.ere_threshold = 0.5
+        self.es_limit = 50
+       
+    def sample_initial_frames(self):
+        self.rex_macro.vars['number_of_frames'] = self.num_init_frames
+        self.rex_macro.execute_macro()
         
-    def get_new_sample_with_constraint(self,worst_likelihood):
-        self.rex_macro.vars["number_of_frames"] = self.num_frames
-        
-        curr_li = 0
-        early_stopper_limit = 100
-        es = 0
-        while es < early_stopper_limit:
-            self.rex_macro.execute_macro()
-            self.newly_sampled_likelihoods = self.rex_macro.sampled_likelihoods
-            
-            self.nsgl = []              # newly sampled good likelihoods
-            for li in self.newly_sampled_likelihoods:
-                if li > float(worst_likelihood):
-                    self.nsgl.append(li)
-            if len(self.nsgl)>0:
-                curr_li=min(self.nsgl)
-                if curr_li > float(worst_likelihood):
-                    return curr_li
-                else:
-                    es += 1
-            else:
-                es += 1
-            if es%1==0:
-                print(f"---------------------------\nes_count: {es} at temperature {self.at_temperature}\n---------------------------")
-                
-        print("Ealy stopper triggered")
-        self.write_output()
-        
-    def estimate_unsampled_evidence(self):
-        max_li = max(self.likelihoods)
-        sampled_till_xi = self.Xi
-        unsampled_evidence = max_li * sampled_till_xi
-        return unsampled_evidence
 
-    def check_stopper_ere(self):
-        rhs_ere = log(self.Z + self.estimate_unsampled_evidence()) - log(self.Z)
-        return rhs_ere
+    def parse_likelihoods(self,fhead='likelihoods_'):
+        sampled_likelihoods = []
+        all_likelihood_binaries = glob.glob(f'{fhead}*')
+        for binfile in all_likelihood_binaries:
+            likelihoods=[]
+            with open(binfile,'rb') as rlif:
+                try:
+                    likelihoods = pickle.load(rlif)
+                except:
+                    print(f"Failed to open {binfile}. Maybe this file is empty...!")
+                if len(likelihoods)!=0:
+                    for li in likelihoods:
+                        sampled_likelihoods.append(li)
+            os.remove(binfile)
+
+        return sampled_likelihoods
+
 
     def check_stopper(self):
         '''
-        Check if Li is rising considerably as a function of Xi  
+        Check if Li is rising considerably as a function of Xi
+        1. Get ERE
+        2. Check if ERE < threshold
+        3. Check slope
+        4. If slope is low for stopper cap consecutive samples, stop 
         '''
-        ere_val = self.check_stopper_ere()
-        print(f"ERE:{self.check_stopper_ere()}")
+        ere_val = log(self.Z + self.estimate_unsampled_evidence()) - log(self.Z)
+        print(f"ERE:{ere_val}")
         if ere_val < self.ere_threshold:
-            print(f"{'---'*20}\nCurrent stopper hits: {self.stopper_hits}/{self.stopper_cap} at temperature index {self.at_temperature}")
             previous_Li = self.worst_li_list[-2]
             current_Li = self.worst_li_list[-1]
             previous_Xi = self.worst_xi_list[-2]
             current_Xi = self.worst_xi_list[-1]
 
-            lhs = current_Li/previous_Li
-            rhs = previous_Xi/current_Xi
-            if lhs<rhs:
+            if (current_Li/previous_Li) < (previous_Xi/current_Xi):
                 self.stopper_hits += 1
+                print(f"{'---'*20}\nConvergence detector hits: {self.stopper_hits}/{self.stopper_cap}")
             else:
                 self.stopper_hits = 0
 
             if self.stopper_hits >= self.stopper_cap:
-                self.write_output()
+                self.terminator()
 
-    def nester(self):
-        from matplotlib import pyplot as plt
-        # self.nester_niter = 50#REMOVE
-        print(f"Building nest with {self.rex_macro.vars['number_of_frames']} samples")
-        self.at_temperature = self.rex_macro.execute_macro()
-        self.likelihoods = self.rex_macro.sampled_likelihoods 
 
-        self.Xi = 1
-        self.Z = 0
-        self.worst_li_list = []
-        self.worst_xi_list = []
-        all_Z = []
-        delta_xis = []
-        delta_lis = []
-        print(f"Intiating nesting\tInitial pool size is: {len(self.likelihoods)}")
-        for i in range(self.nester_niter):
-            # First, get the Wi
-            curr_Xi = np.exp((-1*i) / self.num_frames)
-            Wi = self.Xi - curr_Xi
+    def estimate_unsampled_evidence(self):
+        # max_li = max(self.likelihoods)
+        avg_li = sum(self.likelihoods)/len(self.likelihoods)
+        sampled_till_xi = self.Xi
+        unsampled_evidence = avg_li * sampled_till_xi
+        return unsampled_evidence
 
-            # Then, get the worst likelihood and replace it 
-            Li = min(self.likelihoods)
-            self.likelihoods.remove(Li)
 
-            # Collect Z
-            self.Z += np.float(Li)*np.float(Wi)
-            self.Xi = curr_Xi
-            print(f"{'==='*50}\
-                \nIteration {i}:\nWorst likelihood:{Li}\t\tat Xi:{curr_Xi}\t\tEstimated evidence:{self.Z}\t\tat temperature index:{self.at_temperature}\
-                \n{'==='*50}")
-        
-            self.worst_li_list.append(Li)
-            self.worst_xi_list.append(self.Xi)
-            all_Z.append(self.Z)
-            new_Li = self.get_new_sample_with_constraint(Li)
-            
-            if new_Li==None:
-                self.write_output()
-            
-            self.likelihoods.append(new_Li)
-            if len(all_Z)>5:
-                self.check_stopper()
-        self.write_output()
-        
-    def write_output(self):
+    # def destroy_nest(self):
+    #     parent_process_id = os.getppid()
+    #     killer = 'pkill ' + str(parent_process_id)
+    #     os.kill(parent_process_id,signal.SIGKILL)
+
+
+    def terminator(self):
         unsampled_evidence = self.estimate_unsampled_evidence()
         total_evidence = unsampled_evidence + self.Z
         print(f"Estimated evidence: sampled={self.Z} and total={total_evidence}")
         with open("estimated_evidence.dat",'a') as eedat:
-            eedat.write(f"{self.at_temperature} : {total_evidence}\n")
-        exit()
+            eedat.write(f"{total_evidence}\n")
+        self.comm_obj.Abort(errorcode=0)
+
+    def nester(self):
+        Li = 0
+        self.Xi = 1
+        self.Z = 0
+        self.worst_li_list = []
+        self.worst_xi_list = []
+        es_counter = 0
+        self.comm_obj = MPI.COMM_WORLD
+        base_process = (self.comm_obj.Get_rank()==0)
+
+        # Build the nest
+        print(f"Building nest with {self.num_init_frames}")
+        self.sample_initial_frames()
+        if base_process:
+            self.likelihoods = self.parse_likelihoods()
+            print(f"Intiating nesting\tInitial pool size is: {len(self.likelihoods)}")
+        self.comm_obj.Barrier()
+
+        for i in range(self.nester_niter):
+            if base_process:
+                # First, get the Wi and Li
+                curr_Xi = exp(-i/self.num_frames_per_iter)
+                Wi = self.Xi - curr_Xi
+                Li = min(self.likelihoods)
+                # Do housekeeping tasks
+                self.Xi = curr_Xi
+                self.worst_li_list.append(Li)
+                self.worst_xi_list.append(self.Xi)
+            self.comm_obj.Barrier()
+            
+            # Now generate new sample for the next iteration
+            self.rex_macro.vars['number_of_frames'] = self.num_frames_per_iter
+            self.rex_macro.vars["replica_exchange_swap"] = True
+            self.rex_macro.execute_macro()
+            if base_process:
+                newly_sampled_likelihoods = self.parse_likelihoods()
+                nsgl = [li for li in newly_sampled_likelihoods if li>Li]
+                # Get new likelihood and collect Z
+                if len(nsgl)>0:
+                    new_Li=min(nsgl)
+                    self.likelihoods.remove(Li)
+                    self.likelihoods.append(new_Li)
+                    self.Z += float(Li)*float(Wi)
+                    es_counter = 0
+                    if i>1:
+                        self.check_stopper()    
+                else:
+                    new_Li = None
+                    es_counter+=1
+                    print(f"{'---'*30}\nEarly stopper count: {es_counter}\n{'---'*30}")
+                    if es_counter==self.es_limit:
+                        break
+                print(f"\n-----> Iteration {i}:\tWorst likelihood:{Li}\t\tat Xi:{self.Xi}\t\tEstimated evidence:{self.Z}\n")
+            self.comm_obj.Barrier()
+
+        if base_process:
+            self.terminator()
+        self.comm_obj.Barrier()
+        print("Crossed the barrier")
+        self.comm_obj.Abort(errorcode=0)
+        
 
 
 class _SerialReplicaExchange(object):
@@ -726,11 +751,11 @@ class ReplicaExchange(object):
 
         # try exchange
         flag = self.rem.do_exchange(myscore, fscore, findex)
-        # print(f"\n___________***Replica exchange successful...! Exchanged between {self.rem.get_my_index()} and {findex}***___________\n")
 
         self.nattempts += 1
         # if accepted, change temperature
         if (flag):
+            # print(f"\n___________***Replica exchange successful...! Exchanged between {self.rem.get_my_index()} and {ftemp} at {nframe}***___________\n")
             for so in self.samplerobjects:
                 so.set_kt(ftemp)
             self.nsuccess += 1

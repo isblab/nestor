@@ -107,6 +107,7 @@ class RestraintBase(object):
         output = {}
         score = self.evaluate()
         output["_TotalScore"] = str(score)
+
         suffix = "_Score" + self._label_suffix
         for rs in self.restraint_sets:
             out_name = rs.get_name() + suffix
@@ -124,7 +125,6 @@ class RestraintBase(object):
             out_name = rs.get_name() + suffix
             output[out_name] = str(rs.unprotected_evaluate(None))
         return output
-
 
     def _create_restraint_set(self, name=None, cls=IMP.RestraintSet):
         """Create ``IMP.RestraintSet``."""

@@ -3,6 +3,7 @@ Protocols for sampling structures and analyzing them.
 """
 
 from __future__ import print_function, division
+import RMF
 import IMP
 import IMP.pmi.tools
 import IMP.pmi.samplers
@@ -15,12 +16,14 @@ import IMP.isd
 import IMP.pmi.dof
 import os
 import glob
+import pickle
 from operator import itemgetter
 from collections import defaultdict
 import numpy as np
 import itertools
 import warnings
 import math
+
 
 
 class _RMFRestraints(object):
@@ -102,7 +105,8 @@ class ReplicaExchange0(object):
                  test_mode=False,
                  score_moved=False,
                  use_nester=False,
-                 nester_restraints=None):
+                 nester_restraints=None,
+                 nester_rmf_fname_prefix = 'nested'):
         """Constructor.
            @param model The IMP model
            @param root_hier Top-level (System)hierarchy
@@ -251,9 +255,11 @@ class ReplicaExchange0(object):
         self.vars["geometries"] = None
         self.test_mode = test_mode
         self.score_moved = score_moved
-        self.nest = False
-        self.nester_restraints = None
-        
+        self.nest = use_nester
+        self.nester_restraints = nester_restraints
+        self.nester_rmf_fname = nester_rmf_fname_prefix
+        self.rmf_h = "init.rmf3"
+
     def add_geometries(self, geometries):
         if self.vars["geometries"] is None:
             self.vars["geometries"] = list(geometries)
@@ -348,7 +354,7 @@ class ReplicaExchange0(object):
                 self.rmf_output_objects.append(sampler_md)
             samplers.append(sampler_md)
 # -------------------------------------------------------------------------
-        
+
         print("Setting up ReplicaExchange")
         rex = IMP.pmi.samplers.ReplicaExchange(
             self.model, self.vars["replica_exchange_minimum_temperature"],
@@ -365,7 +371,7 @@ class ReplicaExchange0(object):
         # different binary length of rem.get_my_parameter double and python
         # float
         min_temp_index = int(min(rex.get_temperatures()) * temp_index_factor)
-
+        
 # -------------------------------------------------------------------------
 
         globaldir = self.vars["global_output_directory"] + "/"
@@ -415,7 +421,7 @@ class ReplicaExchange0(object):
 
         # Ensure model is updated before saving init files
         if not self.test_mode:
-            self.model.update()
+            self.model.update() #TODO single model for each time execute_macro, could be problematic
 
         if not self.test_mode and not self.nest:
             if self.output_objects is not None:
@@ -425,9 +431,9 @@ class ReplicaExchange0(object):
         # else:
         #     print("Stat file writing is disabled")
 
-        if self.rmf_output_objects is not None:
+        if self.rmf_output_objects is not None and not self.nest:  #TODO changed
             print("Stat info being written in the rmf file")
-        if not self.test_mode and not self.nest:    
+        if not self.test_mode and not self.nest:
             print("Setting up replica stat file")
             replica_stat_file = globaldir + \
                 self.vars["replica_stat_file_suffix"] + "." + str(myindex) + ".out"
@@ -497,16 +503,18 @@ class ReplicaExchange0(object):
                 output.add_restraints_to_rmf(rmfname, self._rmf_restraints)
 
         ntimes_at_low_temp = 0
-        
+
         if myindex == 0 and not self.nest:
             self.show_info()
-            
-        self.replica_exchange_object.set_was_used(True)
+
+        self.replica_exchange_object.set_was_used(True) #TODO could be problematic. Search set_was_used
         nframes = self.vars["number_of_frames"]
         if self.test_mode:
             nframes = 1
 
-        self.sampled_likelihoods = []
+
+        sampled_likelihoods = []
+        restraint_deets = []
         for i in range(nframes):
             if self.test_mode:
                 score = 0.
@@ -520,18 +528,10 @@ class ReplicaExchange0(object):
                 score = IMP.pmi.tools.get_restraint_set(
                     self.model).evaluate(False)
 
-                if self.nest:
-                    likelihood_for_sample = 1
-                    for rstrnt in self.nester_restraints:
-                        likelihood_for_sample = likelihood_for_sample * rstrnt.get_likelihood()
-                    self.sampled_likelihoods.append(likelihood_for_sample)
-                    if i%10==0 and i!=0:
-                        print(f"--- Nested sampling frame: {str(i)}")#\tHighest sampled likelihood: {str(max(likelihood_for_sample))}")
-                        
                 mpivs.set_value("score", score)
             if not self.nest:
                 output.set_output_entry("score", score)
-            
+
             my_temp_index = int(rex.get_my_temp() * temp_index_factor)
             if self.vars["save_coordinates_mode"] == "lowest_temperature":
                 save_frame = (min_temp_index == my_temp_index)
@@ -549,8 +549,21 @@ class ReplicaExchange0(object):
             if save_frame and not self.test_mode:
                 self.model.update()
 
-            if save_frame and not self.nest:
+            if save_frame :
                 print("--- frame %s score %s " % (str(i), str(score)))
+
+                if save_frame and self.nest:
+                    likelihood_for_sample = 1
+                    
+                    for rstrnt in self.nester_restraints:
+                        likelihood_for_sample = likelihood_for_sample * rstrnt.get_likelihood()
+                        output_check = rstrnt.get_output_to_nest_check()
+                        for score_key in output_check:
+                            if "Data_Score" in score_key:
+                                restraint_deets.append(f"{score_key}:{output_check[score_key]}")
+                        # print(rstrnt,rstrnt.get_likelihood(),rstrnt.get_output_to_nest_check())
+                    sampled_likelihoods.append(likelihood_for_sample)
+                    restraint_deets.append(f"Likelihood:{likelihood_for_sample}")
 
                 if not self.test_mode and not self.nest:
                     if i % self.vars["nframes_write_coordinates"] == 0:
@@ -568,36 +581,54 @@ class ReplicaExchange0(object):
                         output.write_stat2(low_temp_stat_file)
                 ntimes_at_low_temp += 1
 
-                
             if not self.test_mode and not self.nest:
                 output.write_stat2(replica_stat_file)
             if self.vars["replica_exchange_swap"]:
                 rex.swap_temp(i, score)
-        
+
+        if self.nest:
+            with open(f'likelihoods_{self.replica_exchange_object.get_my_index()}','wb') as lif:
+                pickle.dump(sampled_likelihoods, lif)
+
+            with open(f'scores_{self.replica_exchange_object.get_my_index()}','wb') as scoref:
+                pickle.dump(restraint_deets, scoref)
+
+            rmf_fname = f"{self.nester_rmf_fname}_{self.replica_exchange_object.get_my_index()}.rmf3"
+            if rmf_fname not in os.listdir(os.getcwd()):
+                self.rmf_h = RMF.create_rmf_file(rmf_fname)
+                IMP.rmf.add_hierarchy(self.rmf_h, self.root_hier)
+            else:
+                try: 
+                    IMP.rmf.save_frame(self.rmf_h)
+                except:
+                    pass
+            # with open(f"li_{self.replica_exchange_object.get_my_index()}",'w') as lf:
+            #     for m in sampled_likelihoods:
+            #         lf.write(str(m)+'\n')
+
         for p, state in IMP.pmi.tools._all_protocol_outputs(self.root_hier):
             p.add_replica_exchange(state, self)
 
         if not self.test_mode and not self.nest:
             print("closing production rmf files")
             output.close_rmf(rmfname)
-        return rex.rem.get_my_index() 
+        return rex.rem.get_my_index()
         # rex.get_my_temp()
 
 
 class NestedSampling():
-    def __init__(self,num_frames,nester_niter,nester_restraints,rex_macro):
-        self.ns = IMP.pmi.samplers.nested_sampler()
-        self.ns.num_frames = num_frames
+    def __init__(self,num_init_frames,num_frames_per_iter,nester_niter,nester_restraints,rex_macro):
+        self.ns = IMP.pmi.samplers.NestedSampler()
+        self.ns.num_init_frames = num_init_frames
+        self.ns.num_frames_per_iter = num_frames_per_iter
         self.ns.nester_niter = nester_niter
         self.ns.rex_macro = rex_macro
-        self.ns.rex_macro.nest = True
         self.ns.rex_macro.nester_restraints = nester_restraints
-
+        self.ns.rex_macro.nest = True
+        
     def execute_nested_sampling(self):
-        print("Starting Nester")
-        # worst_xi_list,worst_li_list,Z = 
         self.ns.nester()
-    
+
 
 class BuildSystem(object):
     """A macro to build a IMP::pmi::topology::System based on a
