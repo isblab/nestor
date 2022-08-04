@@ -15,6 +15,7 @@ import IMP.rmf
 import IMP.isd
 import IMP.pmi.dof
 import os
+import math
 import glob
 import pickle
 from operator import itemgetter
@@ -527,7 +528,7 @@ class ReplicaExchange0(object):
                         sampler_mc.optimize(self.vars["monte_carlo_steps"])
                 score = IMP.pmi.tools.get_restraint_set(
                     self.model).evaluate(False)
-
+                
                 mpivs.set_value("score", score)
             if not self.nest:
                 output.set_output_entry("score", score)
@@ -551,6 +552,9 @@ class ReplicaExchange0(object):
 
             if save_frame :
                 print("--- frame %s score %s " % (str(i), str(score)))
+                if math.isnan(score):
+                    import sys
+                    sys.exit("Found NaN")
 
                 if save_frame and self.nest:
                     likelihood_for_sample = 1
@@ -586,7 +590,7 @@ class ReplicaExchange0(object):
             if self.vars["replica_exchange_swap"]:
                 rex.swap_temp(i, score)
 
-        if self.nest:
+        if self.nest and len(sampled_likelihoods)>0:
             with open(f'likelihoods_{self.replica_exchange_object.get_my_index()}','wb') as lif:
                 pickle.dump(sampled_likelihoods, lif)
 
@@ -617,7 +621,7 @@ class ReplicaExchange0(object):
 
 
 class NestedSampling():
-    def __init__(self,num_init_frames,num_frames_per_iter,nester_niter,nester_restraints,rex_macro):
+    def __init__(self,num_init_frames,num_frames_per_iter,nester_niter,nester_restraints,rex_macro,stopper_cap,early_stopper_cap):
         self.ns = IMP.pmi.samplers.NestedSampler()
         self.ns.num_init_frames = num_init_frames
         self.ns.num_frames_per_iter = num_frames_per_iter
@@ -625,6 +629,8 @@ class NestedSampling():
         self.ns.rex_macro = rex_macro
         self.ns.rex_macro.nester_restraints = nester_restraints
         self.ns.rex_macro.nest = True
+        self.ns.stopper_cap = stopper_cap
+        self.ns.es_limit = early_stopper_cap
         
     def execute_nested_sampling(self):
         self.ns.nester()

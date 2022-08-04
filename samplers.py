@@ -35,11 +35,11 @@ class NestedSampler():
         self.stopper_hits = 0
         self.ere_threshold = 0.5
         self.es_limit = 50
-       
+
     def sample_initial_frames(self):
         self.rex_macro.vars['number_of_frames'] = self.num_init_frames
         self.rex_macro.execute_macro()
-        
+
 
     def parse_likelihoods(self,fhead='likelihoods_'):
         sampled_likelihoods = []
@@ -59,13 +59,13 @@ class NestedSampler():
         return sampled_likelihoods
 
 
-    def check_stopper(self):
+    def check_stopper(self,iteration,es_hits):
         '''
         Check if Li is rising considerably as a function of Xi
         1. Get ERE
         2. Check if ERE < threshold
         3. Check slope
-        4. If slope is low for stopper cap consecutive samples, stop 
+        4. If slope is low for stopper cap consecutive samples, stop
         '''
         ere_val = log(self.Z + self.estimate_unsampled_evidence()) - log(self.Z)
         print(f"ERE:{ere_val}")
@@ -82,7 +82,8 @@ class NestedSampler():
                 self.stopper_hits = 0
 
             if self.stopper_hits >= self.stopper_cap:
-                self.terminator()
+                self.get_log(iter=iteration, conv_hits=self.stopper_hits, es_hits=es_hits)
+                self.terminator(mode='Convergence')
 
 
     def estimate_unsampled_evidence(self):
@@ -99,13 +100,23 @@ class NestedSampler():
     #     os.kill(parent_process_id,signal.SIGKILL)
 
 
-    def terminator(self):
+    def get_log(self,iter,conv_hits,es_hits):
+        with open("run.log",'w') as rlf:
+            rlf.write(f"Last iteration: {iter} \nCurrent convergence criterion hits: {conv_hits} \nCurrent early stopper_hits: {es_hits}\n")
+
+
+    def terminator(self,mode):
         unsampled_evidence = self.estimate_unsampled_evidence()
         total_evidence = unsampled_evidence + self.Z
         print(f"Estimated evidence: sampled={self.Z} and total={total_evidence}")
+
         with open("estimated_evidence.dat",'a') as eedat:
             eedat.write(f"{total_evidence}\n")
+        with open('how_did_i_die.txt','a') as modef:
+            modef.write(f"{mode}\n")
+
         self.comm_obj.Abort(errorcode=0)
+
 
     def nester(self):
         Li = 0
@@ -130,13 +141,16 @@ class NestedSampler():
                 # First, get the Wi and Li
                 curr_Xi = exp(-i/self.num_frames_per_iter)
                 Wi = self.Xi - curr_Xi
-                Li = min(self.likelihoods)
+                if len(self.likelihoods)>0:
+                    Li = min(self.likelihoods)
+                else:
+                    break
                 # Do housekeeping tasks
                 self.Xi = curr_Xi
                 self.worst_li_list.append(Li)
                 self.worst_xi_list.append(self.Xi)
             self.comm_obj.Barrier()
-            
+
             # Now generate new sample for the next iteration
             self.rex_macro.vars['number_of_frames'] = self.num_frames_per_iter
             self.rex_macro.vars["replica_exchange_swap"] = True
@@ -146,28 +160,28 @@ class NestedSampler():
                 nsgl = [li for li in newly_sampled_likelihoods if li>Li]
                 # Get new likelihood and collect Z
                 if len(nsgl)>0:
-                    new_Li=min(nsgl)
+                    new_Li=max(nsgl)
+                    # print(new_Li)
                     self.likelihoods.remove(Li)
                     self.likelihoods.append(new_Li)
                     self.Z += float(Li)*float(Wi)
                     es_counter = 0
                     if i>1:
-                        self.check_stopper()    
+                        self.check_stopper(iteration=i,es_hits=es_counter)
+
                 else:
                     new_Li = None
                     es_counter+=1
                     print(f"{'---'*30}\nEarly stopper count: {es_counter}\n{'---'*30}")
                     if es_counter==self.es_limit:
-                        break
+                        self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
+                        self.terminator(mode='EarlyStopper')
                 print(f"\n-----> Iteration {i}:\tWorst likelihood:{Li}\t\tat Xi:{self.Xi}\t\tEstimated evidence:{self.Z}\n")
             self.comm_obj.Barrier()
+        self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
+        self.terminator(mode='MaxIterations')
 
-        if base_process:
-            self.terminator()
-        self.comm_obj.Barrier()
-        print("Crossed the barrier")
-        self.comm_obj.Abort(errorcode=0)
-        
+
 
 
 class _SerialReplicaExchange(object):
