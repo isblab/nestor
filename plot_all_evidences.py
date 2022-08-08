@@ -13,13 +13,13 @@ def get_evidences(directory):
         with open(os.path.join(res,'estimated_evidences.dat'),'r') as evf:
             evidences = []
             for ln in evf.readlines():
-                evidences.append(log(float(ln.strip())))
+                evidences.append(-log(float(ln.strip())))
 
             all_evidences[res.split('/')[-1]] = evidences
     return all_evidences
 
 
-trials = sys.argv[1].split(',')
+trials = sys.argv
 for trial in trials:
     evidences = get_evidences(trial)
     std_err = []
