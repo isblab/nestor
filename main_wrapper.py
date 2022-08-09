@@ -10,10 +10,10 @@ from matplotlib import pyplot as plt
 # -------------------------------- User Inputs --------------------------------
 # -----------------------------------------------------------------------------
 
-# '01','05','10','20','30',
-resolutions = ['50']
-num_runs = 1
-trial_id = 16
+# '01','05','10',
+resolutions = [20,30,50]
+num_runs = 3
+trial_id = 'new_world'
 
 imp_path = '/home/shreyasarvindekar/Projects/cgopt/imp-clean2/build/setup_environment.sh'
 modeling_script_path = '../../nude_modeling.py'
@@ -25,7 +25,7 @@ modeling_script_path = '../../nude_modeling.py'
 def concatenate_evidences(resolutions):
     c_ev_files = []
     for res in resolutions:
-        dir_name = 'res_'+res
+        dir_name = 'res_'+str(res)
         os.chdir(dir_name)
         evidence_files = glob.glob('run*/estimated_evidence*')
         with open("estimated_evidences.dat",'w') as concatf:
@@ -34,7 +34,7 @@ def concatenate_evidences(resolutions):
                     concatf.write(evf.read())
         os.chdir('../')
         c_ev_files.append(f"{dir_name}/estimated_evidences.dat")
-        return c_ev_files
+    return c_ev_files
 
 
 # -----------------------------------------------------------------------------
@@ -73,7 +73,7 @@ print('Done with the runs')
 
 # --------------------------------- Plotting ----------------------------------
 
-concatenated_evidence_files = concatenate_evidences(resolutions)
+files = concatenate_evidences(resolutions)
 mean_log_evi = []
 for res in files:
     evidences = []
@@ -87,7 +87,8 @@ for res in files:
 
     std_err = np.std(log_evidences)/math.sqrt(len(log_evidences))
     mean_log_evi.append(np.mean(log_evidences))
-    plt.errorbar(res.split('/')[0], np.mean(log_evidences), yerr=std_err, fmt='o')
+    plt.errorbar(int(res.split('/')[0][-2:]), np.mean(log_evidences),
+                yerr=std_err, fmt='o')
 
 plt.yticks(np.arange(int(min(mean_log_evi)-10),int(max(mean_log_evi))+10,2))
 plt.grid(axis='y')

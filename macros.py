@@ -23,7 +23,9 @@ from collections import defaultdict
 import numpy as np
 import itertools
 import warnings
-import math
+
+from mpi4py import MPI
+
 
 
 
@@ -622,19 +624,181 @@ class ReplicaExchange0(object):
 
 class NestedSampling():
     def __init__(self,num_init_frames,num_frames_per_iter,nester_niter,nester_restraints,rex_macro,stopper_cap,early_stopper_cap):
-        self.ns = IMP.pmi.samplers.NestedSampler()
-        self.ns.num_init_frames = num_init_frames
-        self.ns.num_frames_per_iter = num_frames_per_iter
-        self.ns.nester_niter = nester_niter
-        self.ns.rex_macro = rex_macro
-        self.ns.rex_macro.nester_restraints = nester_restraints
-        self.ns.rex_macro.nest = True
-        self.ns.stopper_cap = stopper_cap
-        self.ns.es_limit = early_stopper_cap
+        # self.ns = IMP.pmi.samplers.NestedSampler()
+        self.num_init_frames = num_init_frames
+        self.num_frames_per_iter = num_frames_per_iter
+        self.nester_niter = nester_niter
+        self.rex_macro = rex_macro
+        self.rex_macro.nester_restraints = nester_restraints
+        self.rex_macro.nest = True
+        self.stopper_cap = stopper_cap
+        self.es_limit = early_stopper_cap
         
-    def execute_nested_sampling(self):
-        self.ns.nester()
+        self.ere_threshold = 0.5
+        self.stopper_hits = 0
+        self.avg_li = 0
+        self.comm_obj = MPI.COMM_WORLD
+        
+        
 
+    def sample_initial_frames(self):
+        self.rex_macro.vars['number_of_frames'] = self.num_init_frames
+        self.rex_macro.execute_macro()
+
+
+    def parse_likelihoods(self,fhead='likelihoods_'):
+        sampled_likelihoods = []
+        all_likelihood_binaries = glob.glob(f'{fhead}*')
+        for binfile in all_likelihood_binaries:
+            likelihoods=[]
+            with open(binfile,'rb') as rlif:
+                try:
+                    likelihoods = pickle.load(rlif)
+                except:
+                    print(f"Failed to open {binfile}. Maybe this file is empty...!")
+                if len(likelihoods)!=0:
+                    for li in likelihoods:
+                        sampled_likelihoods.append(li)
+            os.remove(binfile)
+
+        return sampled_likelihoods
+
+
+    # def shuffle(self,max_trans):
+    #     print("Shuffling configuration")
+    #     IMP.pmi.tools.shuffle_configuration(self.rex_macro.root_hier, max_translation=max_trans)
+    #     self.rex_macro.model.update()
+    #     self.rex_macro.execute_macro()
+    #     exit(0)
+
+
+    def check_stopper(self,iteration,es_hits):
+        '''
+        Check if Li is rising considerably as a function of Xi
+        1. Get ERE
+        2. Check if ERE < threshold
+        3. Check slope
+        4. If slope is low for stopper cap consecutive samples, stop
+        '''
+        ere_val = math.log(self.Z + self.estimate_unsampled_evidence()) - math.log(self.Z)
+        print(f"ERE:{ere_val}")
+        if ere_val < self.ere_threshold:
+            previous_Li = self.worst_li_list[-2]
+            current_Li = self.worst_li_list[-1]
+            previous_Xi = self.worst_xi_list[-2]
+            current_Xi = self.worst_xi_list[-1]
+
+            if (current_Li/previous_Li) < (previous_Xi/current_Xi):
+                self.stopper_hits += 1
+                print(f"{'---'*20}\nConvergence detector hits: {self.stopper_hits}/{self.stopper_cap}")
+            else:
+                self.stopper_hits = 0
+
+            if self.stopper_hits >= self.stopper_cap:
+                self.get_log(iter=iteration, conv_hits=self.stopper_hits, es_hits=es_hits)
+                self.terminator(mode='Convergence')
+
+
+    def estimate_unsampled_evidence(self):
+        # max_li = max(self.likelihoods)
+        avg_li = sum(self.likelihoods)/len(self.likelihoods)
+        sampled_till_xi = self.Xi
+        unsampled_evidence = avg_li * sampled_till_xi
+        return unsampled_evidence
+
+
+    # def destroy_nest(self):
+    #     parent_process_id = os.getppid()
+    #     killer = 'pkill ' + str(parent_process_id)
+    #     os.kill(parent_process_id,signal.SIGKILL)
+
+
+    def get_log(self,iter,conv_hits,es_hits):
+        with open("run.log",'w') as rlf:
+            rlf.write(f"Last iteration: {iter} \nCurrent convergence criterion hits: {conv_hits} \nCurrent early stopper_hits: {es_hits}\n")
+
+
+    def terminator(self,mode):
+        unsampled_evidence = self.estimate_unsampled_evidence()
+        total_evidence = unsampled_evidence + self.Z
+        print(f"Estimated evidence: sampled={self.Z} and total={total_evidence}")
+
+        with open("estimated_evidence.dat",'a') as eedat:
+            eedat.write(f"{total_evidence}\n")
+        with open('how_did_i_die.txt','a') as modef:
+            modef.write(f"{mode}\n")
+
+        self.comm_obj.Abort(errorcode=0)
+
+
+    def execute_nested_sampling(self):
+
+        Li = 0
+        self.Xi = 1
+        self.Z = 0
+        self.worst_li_list = []
+        self.worst_xi_list = []
+        es_counter = 0
+        base_process = (self.comm_obj.Get_rank()==0)
+
+        # Build the nest
+        print(f"Building nest with {self.num_init_frames}")
+        self.sample_initial_frames()
+        if base_process:
+            self.likelihoods = self.parse_likelihoods()
+            print(f"Intiating nesting\tInitial pool size is: {len(self.likelihoods)}")
+        self.comm_obj.Barrier()
+
+        for i in range(self.nester_niter):
+            if base_process:
+                # First, get the Wi and Li
+                curr_Xi = math.exp(-i/self.num_frames_per_iter)
+                Wi = self.Xi - curr_Xi
+                if len(self.likelihoods)>0:
+                    Li = min(self.likelihoods)
+                else:
+                    break
+                # Do housekeeping tasks
+                self.Xi = curr_Xi
+                self.worst_li_list.append(Li)
+                self.worst_xi_list.append(self.Xi)
+            self.comm_obj.Barrier()
+
+            # Now generate new sample for the next iteration
+            self.rex_macro.vars['number_of_frames'] = self.num_frames_per_iter
+            self.rex_macro.vars["replica_exchange_swap"] = True
+            self.rex_macro.execute_macro()
+            if base_process:
+                newly_sampled_likelihoods = self.parse_likelihoods()
+                nsgl = [li for li in newly_sampled_likelihoods if li>Li]
+                # Get new likelihood and collect Z
+                if len(nsgl)>0:
+                    new_Li=max(nsgl)
+                    # print(new_Li)
+                    self.likelihoods.remove(Li)
+                    self.likelihoods.append(new_Li)
+                    self.Z += float(Li)*float(Wi)
+                    es_counter = 0
+                    if i>1:
+                        self.check_stopper(iteration=i,es_hits=es_counter)
+
+                else:
+                    new_Li = None
+                    es_counter+=1
+                    print(f"{'---'*10}\nEarly stopper count: {es_counter}\n{'---'*10}")
+                    if es_counter==self.es_limit:
+                        self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
+                        self.terminator(mode='EarlyStopper')
+
+                    # if es_counter==5: #es_counter/self.es_limit >= 0.5:
+                    #     self.shuffle(max_trans=5)
+
+                print(f"\n-----> Iteration {i}:\tWorst likelihood:{Li}\t\tat Xi:{self.Xi}\t\tEstimated evidence:{self.Z}\n")
+            self.comm_obj.Barrier()
+        self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
+        self.terminator(mode='MaxIterations')
+
+        
 
 class BuildSystem(object):
     """A macro to build a IMP::pmi::topology::System based on a
