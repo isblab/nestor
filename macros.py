@@ -374,7 +374,7 @@ class ReplicaExchange0(object):
         # different binary length of rem.get_my_parameter double and python
         # float
         min_temp_index = int(min(rex.get_temperatures()) * temp_index_factor)
-        
+
 # -------------------------------------------------------------------------
 
         globaldir = self.vars["global_output_directory"] + "/"
@@ -424,7 +424,7 @@ class ReplicaExchange0(object):
 
         # Ensure model is updated before saving init files
         if not self.test_mode:
-            self.model.update() #TODO single model for each time execute_macro, could be problematic
+            self.model.update()
 
         if not self.test_mode and not self.nest:
             if self.output_objects is not None:
@@ -434,7 +434,7 @@ class ReplicaExchange0(object):
         # else:
         #     print("Stat file writing is disabled")
 
-        if self.rmf_output_objects is not None and not self.nest:  #TODO changed
+        if self.rmf_output_objects is not None and not self.nest:
             print("Stat info being written in the rmf file")
         if not self.test_mode and not self.nest:
             print("Setting up replica stat file")
@@ -510,7 +510,7 @@ class ReplicaExchange0(object):
         if myindex == 0 and not self.nest:
             self.show_info()
 
-        self.replica_exchange_object.set_was_used(True) #TODO could be problematic. Search set_was_used
+        self.replica_exchange_object.set_was_used(True)
         nframes = self.vars["number_of_frames"]
         if self.test_mode:
             nframes = 1
@@ -530,7 +530,7 @@ class ReplicaExchange0(object):
                         sampler_mc.optimize(self.vars["monte_carlo_steps"])
                 score = IMP.pmi.tools.get_restraint_set(
                     self.model).evaluate(False)
-                
+
                 mpivs.set_value("score", score)
             if not self.nest:
                 output.set_output_entry("score", score)
@@ -554,22 +554,13 @@ class ReplicaExchange0(object):
 
             if save_frame :
                 print("--- frame %s score %s " % (str(i), str(score)))
-                if math.isnan(score):
-                    import sys
-                    sys.exit("Found NaN")
 
-                if save_frame and self.nest:
+                if self.nest and not math.isnan(score):
                     likelihood_for_sample = 1
-                    
+
                     for rstrnt in self.nester_restraints:
                         likelihood_for_sample = likelihood_for_sample * rstrnt.get_likelihood()
-                        output_check = rstrnt.get_output_to_nest_check()
-                        for score_key in output_check:
-                            if "Data_Score" in score_key:
-                                restraint_deets.append(f"{score_key}:{output_check[score_key]}")
-                        # print(rstrnt,rstrnt.get_likelihood(),rstrnt.get_output_to_nest_check())
                     sampled_likelihoods.append(likelihood_for_sample)
-                    restraint_deets.append(f"Likelihood:{likelihood_for_sample}")
 
                 if not self.test_mode and not self.nest:
                     if i % self.vars["nframes_write_coordinates"] == 0:
@@ -596,15 +587,12 @@ class ReplicaExchange0(object):
             with open(f'likelihoods_{self.replica_exchange_object.get_my_index()}','wb') as lif:
                 pickle.dump(sampled_likelihoods, lif)
 
-            with open(f'scores_{self.replica_exchange_object.get_my_index()}','wb') as scoref:
-                pickle.dump(restraint_deets, scoref)
-
             rmf_fname = f"{self.nester_rmf_fname}_{self.replica_exchange_object.get_my_index()}.rmf3"
             if rmf_fname not in os.listdir(os.getcwd()):
                 self.rmf_h = RMF.create_rmf_file(rmf_fname)
                 IMP.rmf.add_hierarchy(self.rmf_h, self.root_hier)
             else:
-                try: 
+                try:
                     IMP.rmf.save_frame(self.rmf_h)
                 except:
                     pass
@@ -618,12 +606,17 @@ class ReplicaExchange0(object):
         if not self.test_mode and not self.nest:
             print("closing production rmf files")
             output.close_rmf(rmfname)
+
+        #TODO need to close nester RMF file
+
+        #TODO no need of this return now correct?
         return rex.rem.get_my_index()
         # rex.get_my_temp()
 
 
+
 class NestedSampling():
-    def __init__(self,num_init_frames,num_frames_per_iter,nester_niter,nester_restraints,rex_macro,stopper_cap,early_stopper_cap):
+    def __init__(self,num_init_frames,num_frames_per_iter,nester_niter,nester_restraints,rex_macro,stopper_cap,early_stopper_cap,init_error):
         # self.ns = IMP.pmi.samplers.NestedSampler()
         self.num_init_frames = num_init_frames
         self.num_frames_per_iter = num_frames_per_iter
@@ -633,13 +626,12 @@ class NestedSampling():
         self.rex_macro.nest = True
         self.stopper_cap = stopper_cap
         self.es_limit = early_stopper_cap
-        
+        self.init_error = init_error
         self.ere_threshold = 0.5
         self.stopper_hits = 0
         self.avg_li = 0
         self.comm_obj = MPI.COMM_WORLD
-        
-        
+
 
     def sample_initial_frames(self):
         self.rex_macro.vars['number_of_frames'] = self.num_init_frames
@@ -663,13 +655,6 @@ class NestedSampling():
 
         return sampled_likelihoods
 
-
-    # def shuffle(self,max_trans):
-    #     print("Shuffling configuration")
-    #     IMP.pmi.tools.shuffle_configuration(self.rex_macro.root_hier, max_translation=max_trans)
-    #     self.rex_macro.model.update()
-    #     self.rex_macro.execute_macro()
-    #     exit(0)
 
 
     def check_stopper(self,iteration,es_hits):
@@ -707,32 +692,32 @@ class NestedSampling():
         return unsampled_evidence
 
 
-    # def destroy_nest(self):
-    #     parent_process_id = os.getppid()
-    #     killer = 'pkill ' + str(parent_process_id)
-    #     os.kill(parent_process_id,signal.SIGKILL)
-
-
     def get_log(self,iter,conv_hits,es_hits):
         with open("run.log",'w') as rlf:
             rlf.write(f"Last iteration: {iter} \nCurrent convergence criterion hits: {conv_hits} \nCurrent early stopper_hits: {es_hits}\n")
 
 
     def terminator(self,mode):
-        unsampled_evidence = self.estimate_unsampled_evidence()
-        total_evidence = unsampled_evidence + self.Z
-        print(f"Estimated evidence: sampled={self.Z} and total={total_evidence}")
+        #TODO add mode of failure due to nan and dont accumulate/write evidence in that case.
+        if not 'error' in mode.lower():
+            unsampled_evidence = self.estimate_unsampled_evidence()
+            total_evidence = unsampled_evidence + self.Z
+            print(f"Estimated evidence: sampled={self.Z} and total={total_evidence}")
+            with open("estimated_evidence.dat",'a') as eedat:
+                eedat.write(f"{total_evidence}\n")
+            with open('how_did_i_die.txt','a') as modef:
+                modef.write(f"{mode}\n")
+            self.comm_obj.Abort(errorcode=0)
+        else:
+            with open('how_did_i_die.txt','a') as modef:
+                modef.write(f"{mode}\n")
+            self.comm_obj.Abort(errorcode=1)
 
-        with open("estimated_evidence.dat",'a') as eedat:
-            eedat.write(f"{total_evidence}\n")
-        with open('how_did_i_die.txt','a') as modef:
-            modef.write(f"{mode}\n")
-
-        self.comm_obj.Abort(errorcode=0)
 
 
     def execute_nested_sampling(self):
-
+        if self.init_error:
+            self.terminator(mode='Error: Shuffle configuration error')
         Li = 0
         self.Xi = 1
         self.Z = 0
@@ -744,9 +729,13 @@ class NestedSampling():
         # Build the nest
         print(f"Building nest with {self.num_init_frames}")
         self.sample_initial_frames()
+
         if base_process:
             self.likelihoods = self.parse_likelihoods()
+            if len(self.likelihoods)==0: #TODO mode = faulty run
+                self.terminator(mode='Error: Nan found')
             print(f"Intiating nesting\tInitial pool size is: {len(self.likelihoods)}")
+
         self.comm_obj.Barrier()
 
         for i in range(self.nester_niter):
@@ -756,8 +745,7 @@ class NestedSampling():
                 Wi = self.Xi - curr_Xi
                 if len(self.likelihoods)>0:
                     Li = min(self.likelihoods)
-                else:
-                    break
+
                 # Do housekeeping tasks
                 self.Xi = curr_Xi
                 self.worst_li_list.append(Li)
@@ -768,13 +756,16 @@ class NestedSampling():
             self.rex_macro.vars['number_of_frames'] = self.num_frames_per_iter
             self.rex_macro.vars["replica_exchange_swap"] = True
             self.rex_macro.execute_macro()
+
             if base_process:
                 newly_sampled_likelihoods = self.parse_likelihoods()
+                if len(newly_sampled_likelihoods)==0: #TODO mode = faulty run
+                    self.terminator(mode='Error: Nan found')
                 nsgl = [li for li in newly_sampled_likelihoods if li>Li]
+
                 # Get new likelihood and collect Z
                 if len(nsgl)>0:
                     new_Li=max(nsgl)
-                    # print(new_Li)
                     self.likelihoods.remove(Li)
                     self.likelihoods.append(new_Li)
                     self.Z += float(Li)*float(Wi)
@@ -790,15 +781,14 @@ class NestedSampling():
                         self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
                         self.terminator(mode='EarlyStopper')
 
-                    # if es_counter==5: #es_counter/self.es_limit >= 0.5:
-                    #     self.shuffle(max_trans=5)
-
                 print(f"\n-----> Iteration {i}:\tWorst likelihood:{Li}\t\tat Xi:{self.Xi}\t\tEstimated evidence:{self.Z}\n")
             self.comm_obj.Barrier()
         self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-        self.terminator(mode='MaxIterations')
 
-        
+        if base_process:
+            self.terminator(mode='MaxIterations')
+
+
 
 class BuildSystem(object):
     """A macro to build a IMP::pmi::topology::System based on a
