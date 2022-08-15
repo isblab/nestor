@@ -643,22 +643,30 @@ class NestedSampling():
     def parse_likelihoods(self,fhead='likelihoods_'):
         sampled_likelihoods = []
         all_likelihood_binaries = glob.glob(f'{fhead}*')
+        print(all_likelihood_binaries)
         for binfile in all_likelihood_binaries:
+            print(binfile)
             likelihoods=[]
             with open(binfile,'rb') as rlif:
-                try:
-                    likelihoods = pickle.load(rlif)
-                except:
-                    print(f"Failed to open {binfile}. Maybe this file is empty...!")
-            
-            if len(likelihoods)!=0:
+                likelihoods = pickle.load(rlif)
                 for li in likelihoods:
                     sampled_likelihoods.append(li)
+                # except:
+                #     print(f"Failed to open {binfile}. Maybe this file is empty...!")
+            
+            # if len(likelihoods)!=0:
+            #     for li in likelihoods:
+            #         sampled_likelihoods.append(li)
+            # else:
+            #     print(binfile)
+
             os.remove(binfile)
             
         if math.nan in sampled_likelihoods:
-            sampled_likelihoods = []
-
+            self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
+            self.terminator(mode='Error: Nan found')
+        
+        print(f"------------------> Likelihoods: {len(sampled_likelihoods)},\t {sampled_likelihoods}")
         return sampled_likelihoods
 
 
@@ -716,8 +724,11 @@ class NestedSampling():
         else:
             with open('how_did_i_die.txt','a') as modef:
                 modef.write(f"{mode}\n")
+            if mode=='Error: Nan found':
+                with open('li.dat','w') as lif:
+                    for lklhd in self.likelihoods:
+                        lif.write(f"{lklhd}\n")
             self.comm_obj.Abort(errorcode=1)
-
 
 
     def execute_nested_sampling(self):
@@ -735,6 +746,7 @@ class NestedSampling():
         # Build the nest
         print(f"Building nest with {self.num_init_frames}")
         self.sample_initial_frames()
+        self.comm_obj.Barrier()
 
         if base_process:
             self.likelihoods = self.parse_likelihoods()
@@ -742,7 +754,6 @@ class NestedSampling():
                 self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
                 self.terminator(mode='Error: Nan found')
             print(f"Intiating nesting\tInitial pool size is: {len(self.likelihoods)}")
-
         self.comm_obj.Barrier()
 
         for i in range(self.nester_niter):
