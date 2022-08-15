@@ -557,10 +557,12 @@ class ReplicaExchange0(object):
 
                 if self.nest and not math.isnan(score):
                     likelihood_for_sample = 1
-
                     for rstrnt in self.nester_restraints:
                         likelihood_for_sample = likelihood_for_sample * rstrnt.get_likelihood()
                     sampled_likelihoods.append(likelihood_for_sample)
+
+                if self.nest and math.isnan(score):
+                    sampled_likelihoods.append(math.nan)                    
 
                 if not self.test_mode and not self.nest:
                     if i % self.vars["nframes_write_coordinates"] == 0:
@@ -648,13 +650,16 @@ class NestedSampling():
                     likelihoods = pickle.load(rlif)
                 except:
                     print(f"Failed to open {binfile}. Maybe this file is empty...!")
-                if len(likelihoods)!=0:
-                    for li in likelihoods:
-                        sampled_likelihoods.append(li)
+            
+            if len(likelihoods)!=0:
+                for li in likelihoods:
+                    sampled_likelihoods.append(li)
             os.remove(binfile)
+            
+        if math.nan in sampled_likelihoods:
+            sampled_likelihoods = []
 
         return sampled_likelihoods
-
 
 
     def check_stopper(self,iteration,es_hits):
@@ -717,6 +722,7 @@ class NestedSampling():
 
     def execute_nested_sampling(self):
         if self.init_error:
+            self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
             self.terminator(mode='Error: Shuffle configuration error')
         Li = 0
         self.Xi = 1
@@ -733,6 +739,7 @@ class NestedSampling():
         if base_process:
             self.likelihoods = self.parse_likelihoods()
             if len(self.likelihoods)==0: #TODO mode = faulty run
+                self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
                 self.terminator(mode='Error: Nan found')
             print(f"Intiating nesting\tInitial pool size is: {len(self.likelihoods)}")
 
@@ -759,7 +766,11 @@ class NestedSampling():
 
             if base_process:
                 newly_sampled_likelihoods = self.parse_likelihoods()
-                if len(newly_sampled_likelihoods)==0: #TODO mode = faulty run
+                if len(newly_sampled_likelihoods)==0:
+                    with open('lh.dat','w') as lklf:
+                        for lh in self.likelihoods:
+                            lklf.write(f'{str(lh)}\n')
+                    self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
                     self.terminator(mode='Error: Nan found')
                 nsgl = [li for li in newly_sampled_likelihoods if li>Li]
 

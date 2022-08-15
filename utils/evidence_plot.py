@@ -26,7 +26,7 @@ for res in files:
     mean_log_evi.append(np.mean(log_evidences))
     plt.errorbar(res.split('/')[0], np.mean(log_evidences), yerr=std_err, fmt='o')
 
-plt.yticks(np.arange(int(min(mean_log_evi)-10),int(max(mean_log_evi))+10,2))
+plt.yticks(np.arange(int(min(mean_log_evi)-std_err),int(max(mean_log_evi))+std_err,2))
 plt.grid(axis='y')
-plt.savefig(f'trial_{trial_id}_evidence.png') # Include trial number in fname
+# plt.savefig(f'trial_{trial_id}_evidence.png') # Include trial number in fname
 plt.show()
