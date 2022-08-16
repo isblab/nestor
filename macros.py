@@ -643,9 +643,7 @@ class NestedSampling():
     def parse_likelihoods(self,fhead='likelihoods_'):
         sampled_likelihoods = []
         all_likelihood_binaries = glob.glob(f'{fhead}*')
-        print(all_likelihood_binaries)
         for binfile in all_likelihood_binaries:
-            print(binfile)
             likelihoods=[]
             with open(binfile,'rb') as rlif:
                 likelihoods = pickle.load(rlif)
@@ -666,7 +664,6 @@ class NestedSampling():
             self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
             self.terminator(mode='Error: Nan found')
         
-        print(f"------------------> Likelihoods: {len(sampled_likelihoods)},\t {sampled_likelihoods}")
         return sampled_likelihoods
 
 
@@ -712,22 +709,32 @@ class NestedSampling():
 
     def terminator(self,mode):
         #TODO add mode of failure due to nan and dont accumulate/write evidence in that case.
+
+        from matplotlib import pyplot as plt
+        plt.plot(self.all_xi,self.evidences)
+        plt.xlabel('Log Xi')
+        plt.ylabel('Evidence')
+        plt.savefig('LiXi.png')
+        
+        with open('evidence_values.dat','w') as ev:
+            for z in self.evidences:
+                ev.write(f'{z}\n')
+
+        # import plotly.express as px
+        # fig = px.line(x=self.all_xi, y=self.evidences)
+        # fig.show()
+
+        with open('how_did_i_die.txt','a') as modef:
+            modef.write(f"{mode}\n")
+            
         if not 'error' in mode.lower():
             unsampled_evidence = self.estimate_unsampled_evidence()
             total_evidence = unsampled_evidence + self.Z
             print(f"Estimated evidence: sampled={self.Z} and total={total_evidence}")
             with open("estimated_evidence.dat",'a') as eedat:
                 eedat.write(f"{total_evidence}\n")
-            with open('how_did_i_die.txt','a') as modef:
-                modef.write(f"{mode}\n")
             self.comm_obj.Abort(errorcode=0)
         else:
-            with open('how_did_i_die.txt','a') as modef:
-                modef.write(f"{mode}\n")
-            if mode=='Error: Nan found':
-                with open('li.dat','w') as lif:
-                    for lklhd in self.likelihoods:
-                        lif.write(f"{lklhd}\n")
             self.comm_obj.Abort(errorcode=1)
 
 
@@ -756,6 +763,8 @@ class NestedSampling():
             print(f"Intiating nesting\tInitial pool size is: {len(self.likelihoods)}")
         self.comm_obj.Barrier()
 
+        self.evidences = []
+        self.all_xi = []
         for i in range(self.nester_niter):
             if base_process:
                 # First, get the Wi and Li
@@ -777,12 +786,12 @@ class NestedSampling():
 
             if base_process:
                 newly_sampled_likelihoods = self.parse_likelihoods()
-                if len(newly_sampled_likelihoods)==0:
-                    with open('lh.dat','w') as lklf:
-                        for lh in self.likelihoods:
-                            lklf.write(f'{str(lh)}\n')
-                    self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-                    self.terminator(mode='Error: Nan found')
+                # if len(newly_sampled_likelihoods)==0:
+                #     with open('lh.dat','w') as lklf:
+                #         for lh in self.likelihoods:
+                #             lklf.write(f'{str(lh)}\n')
+                #     self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
+                #     self.terminator(mode='Error: Nan found')
                 nsgl = [li for li in newly_sampled_likelihoods if li>Li]
 
                 # Get new likelihood and collect Z
@@ -791,6 +800,11 @@ class NestedSampling():
                     self.likelihoods.remove(Li)
                     self.likelihoods.append(new_Li)
                     self.Z += float(Li)*float(Wi)
+
+                    self.evidences.append(float(Li)*float(Wi))
+                    self.all_xi.append(math.log(self.Xi))
+                    print(f"Current LiWi: {float(Li)*float(Wi)}")
+
                     es_counter = 0
                     if i>1:
                         self.check_stopper(iteration=i,es_hits=es_counter)
