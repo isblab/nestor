@@ -739,9 +739,6 @@ class NestedSampling():
 
 
     def execute_nested_sampling(self):
-        if self.init_error:
-            self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-            self.terminator(mode='Error: Shuffle configuration error')
         Li = 0
         self.Xi = 1
         self.Z = 0
@@ -749,9 +746,14 @@ class NestedSampling():
         self.worst_xi_list = []
         es_counter = 0
         base_process = (self.comm_obj.Get_rank()==0)
-
+        
+        if base_process and self.init_error:
+            self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
+            self.terminator(mode='Error: Shuffle configuration error')
+        
         # Build the nest
         print(f"Building nest with {self.num_init_frames}")
+        self.comm_obj.Barrier()
         self.sample_initial_frames()
         self.comm_obj.Barrier()
 
@@ -786,12 +788,6 @@ class NestedSampling():
 
             if base_process:
                 newly_sampled_likelihoods = self.parse_likelihoods()
-                # if len(newly_sampled_likelihoods)==0:
-                #     with open('lh.dat','w') as lklf:
-                #         for lh in self.likelihoods:
-                #             lklf.write(f'{str(lh)}\n')
-                #     self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-                #     self.terminator(mode='Error: Nan found')
                 nsgl = [li for li in newly_sampled_likelihoods if li>Li]
 
                 # Get new likelihood and collect Z
@@ -819,9 +815,9 @@ class NestedSampling():
 
                 print(f"\n-----> Iteration {i}:\tWorst likelihood:{Li}\t\tat Xi:{self.Xi}\t\tEstimated evidence:{self.Z}\n")
             self.comm_obj.Barrier()
-        self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-
+        
         if base_process:
+            self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
             self.terminator(mode='MaxIterations')
 
 
