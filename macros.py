@@ -785,7 +785,8 @@ class NestedSampling():
             self.rex_macro.vars['number_of_frames'] = self.num_frames_per_iter
             self.rex_macro.vars["replica_exchange_swap"] = True
             self.rex_macro.execute_macro()
-
+            self.comm_obj.Barrier()
+            
             if base_process:
                 newly_sampled_likelihoods = self.parse_likelihoods()
                 nsgl = [li for li in newly_sampled_likelihoods if li>Li]
