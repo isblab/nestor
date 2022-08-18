@@ -709,6 +709,7 @@ class NestedSampling():
 
     def terminator(self,mode):
         #TODO add mode of failure due to nan and dont accumulate/write evidence in that case.
+        # MPI.Finalize()
 
         from matplotlib import pyplot as plt
         plt.plot(self.all_xi,self.evidences)
@@ -733,12 +734,15 @@ class NestedSampling():
             print(f"Estimated evidence: sampled={self.Z} and total={total_evidence}")
             with open("estimated_evidence.dat",'a') as eedat:
                 eedat.write(f"{total_evidence}\n")
-            self.comm_obj.Abort(errorcode=0)
-        else:
-            self.comm_obj.Abort(errorcode=1)
+         
+        return True
+        #     self.comm_obj.Abort(errorcode=0)
+        # else:
+        #     self.comm_obj.Abort(errorcode=1)
 
 
     def execute_nested_sampling(self):
+        terminate = False
         Li = 0
         self.Xi = 1
         self.Z = 0
@@ -749,7 +753,7 @@ class NestedSampling():
         
         if base_process and self.init_error:
             self.get_log(iter=0, conv_hits=self.stopper_hits, es_hits=es_counter)
-            self.terminator(mode='Error: Shuffle configuration error')
+            terminate = self.terminator(mode='Error: Shuffle configuration error')
         
         # Build the nest
         print(f"Building nest with {self.num_init_frames}")
@@ -761,14 +765,14 @@ class NestedSampling():
             self.likelihoods = self.parse_likelihoods()
             if len(self.likelihoods)==0: #TODO mode = faulty run
                 self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-                self.terminator(mode='Error: Nan found')
+                terminate = self.terminator(mode='Error: Nan found')
             print(f"Intiating nesting\tInitial pool size is: {len(self.likelihoods)}")
         self.comm_obj.Barrier()
 
         self.evidences = []
         self.all_xi = []
         for i in range(self.nester_niter):
-            if base_process:
+            if base_process and not terminate:
                 # First, get the Wi and Li
                 curr_Xi = math.exp(-i/self.num_frames_per_iter)
                 Wi = self.Xi - curr_Xi
@@ -786,7 +790,7 @@ class NestedSampling():
             self.rex_macro.vars["replica_exchange_swap"] = True
             self.rex_macro.execute_macro()
             self.comm_obj.Barrier()
-            
+
             if base_process:
                 newly_sampled_likelihoods = self.parse_likelihoods()
                 nsgl = [li for li in newly_sampled_likelihoods if li>Li]
@@ -812,14 +816,14 @@ class NestedSampling():
                     print(f"{'---'*10}\nEarly stopper count: {es_counter}\n{'---'*10}")
                     if es_counter==self.es_limit:
                         self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-                        self.terminator(mode='EarlyStopper')
+                        terminate = self.terminator(mode='EarlyStopper')
 
                 print(f"\n-----> Iteration {i}:\tWorst likelihood:{Li}\t\tat Xi:{self.Xi}\t\tEstimated evidence:{self.Z}\n")
             self.comm_obj.Barrier()
         
         if base_process:
             self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-            self.terminator(mode='MaxIterations')
+            terminate = self.terminator(mode='MaxIterations')
 
 
 
