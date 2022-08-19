@@ -770,12 +770,13 @@ class NestedSampling():
 
         self.evidences = []
         self.all_xi = []
-        
+        self.comm_obj.Barrier()
+
         for i in range(self.nester_niter):
-            if self.terminate:
-                break
-            
             if base_process:
+                if self.terminate:
+                    break
+                
                 # First, get the Wi and Li
                 curr_Xi = math.exp(-i/self.num_frames_per_iter)
                 Wi = self.Xi - curr_Xi
