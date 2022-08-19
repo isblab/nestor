@@ -770,6 +770,7 @@ class NestedSampling():
 
         self.evidences = []
         self.all_xi = []
+        
         for i in range(self.nester_niter):
             if self.terminate:
                 break
@@ -825,7 +826,8 @@ class NestedSampling():
         
         if base_process:
             self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-            self.terminator(mode='MaxIterations')
+            if i==self.nester_niter:
+                self.terminator(mode='MaxIterations')
 
 
 
