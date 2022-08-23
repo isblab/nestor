@@ -633,7 +633,7 @@ class NestedSampling():
         self.stopper_hits = 0
         self.avg_li = 0
         self.comm_obj = MPI.COMM_WORLD
-        self.terminate = False
+        
 
     def sample_initial_frames(self):
         self.rex_macro.vars['number_of_frames'] = self.num_init_frames
@@ -725,7 +725,7 @@ class NestedSampling():
         # fig = px.line(x=self.all_xi, y=self.evidences)
         # fig.show()
 
-        with open('how_did_i_die.txt','a') as modef:
+        with open('how_did_i_die.txt','w') as modef:
             modef.write(f"{mode}\n")
             
         if not 'error' in mode.lower():
@@ -734,12 +734,7 @@ class NestedSampling():
             print(f"Estimated evidence: sampled={self.Z} and total={total_evidence}")
             with open("estimated_evidence.dat",'a') as eedat:
                 eedat.write(f"{total_evidence}\n")
-         
-        self.terminate = True
-        #     self.comm_obj.Abort(errorcode=0)
-        # else:
-        #     self.comm_obj.Abort(errorcode=1)
-
+        
 
     def execute_nested_sampling(self):
         Li = 0
@@ -773,10 +768,13 @@ class NestedSampling():
         self.comm_obj.Barrier()
 
         for i in range(self.nester_niter):
+            self.comm_obj.Barrier()
+            if 'how_did_i_die.txt' in os.listdir('./'):
+                print(os.listdir())
+                break
+
+            self.comm_obj.Barrier()
             if base_process:
-                if self.terminate:
-                    break
-                
                 # First, get the Wi and Li
                 curr_Xi = math.exp(-i/self.num_frames_per_iter)
                 Wi = self.Xi - curr_Xi
