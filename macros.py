@@ -589,9 +589,9 @@ class ReplicaExchange0(object):
             with open(f'likelihoods_{self.replica_exchange_object.get_my_index()}','wb') as lif:
                 pickle.dump(sampled_likelihoods, lif)
 
-            rmf_fname = f"{self.nester_rmf_fname}_{self.replica_exchange_object.get_my_index()}.rmf3"
-            if rmf_fname not in os.listdir(os.getcwd()):
-                self.rmf_h = RMF.create_rmf_file(rmf_fname)
+            nester_rmf_fname = f"{self.nester_rmf_fname}_{self.replica_exchange_object.get_my_index()}.rmf3"
+            if nester_rmf_fname not in os.listdir(os.getcwd()):
+                self.rmf_h = RMF.create_rmf_file(nester_rmf_fname)
                 IMP.rmf.add_hierarchy(self.rmf_h, self.root_hier)
             else:
                 try:
@@ -612,7 +612,7 @@ class ReplicaExchange0(object):
         #TODO need to close nester RMF file
 
         #TODO no need of this return now correct?
-        return rex.rem.get_my_index()
+        # return rex.rem.get_my_index()
         # rex.get_my_temp()
 
 
@@ -721,10 +721,6 @@ class NestedSampling():
             for z in self.evidences:
                 ev.write(f'{z}\n')
 
-        # import plotly.express as px
-        # fig = px.line(x=self.all_xi, y=self.evidences)
-        # fig.show()
-
         with open('how_did_i_die.txt','w') as modef:
             modef.write(f"{mode}\n")
             
@@ -765,12 +761,10 @@ class NestedSampling():
 
         self.evidences = []
         self.all_xi = []
-        self.comm_obj.Barrier()
 
         for i in range(self.nester_niter):
             self.comm_obj.Barrier()
             if 'how_did_i_die.txt' in os.listdir('./'):
-                print(os.listdir())
                 break
 
             self.comm_obj.Barrier()
