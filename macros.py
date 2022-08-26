@@ -741,7 +741,7 @@ class NestedSampling():
         es_counter = 0
         base_process = (self.comm_obj.Get_rank()==0)
         
-        if base_process and self.init_error:
+        if self.init_error:
             self.get_log(iter=0, conv_hits=self.stopper_hits, es_hits=es_counter)
             self.terminator(mode='Error: Shuffle configuration error')
         
