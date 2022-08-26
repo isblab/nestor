@@ -748,79 +748,80 @@ class NestedSampling():
         # Build the nest
         print(f"Building nest with {self.num_init_frames}")
         self.comm_obj.Barrier()
-        self.sample_initial_frames()
-        self.comm_obj.Barrier()
+        if not 'how_did_i_die.txt' in os.listdir('./'):
+            self.sample_initial_frames()
+            self.comm_obj.Barrier()
 
-        if base_process:
-            self.likelihoods = self.parse_likelihoods()
-            if len(self.likelihoods)==0: #TODO mode = faulty run
+            if base_process:
+                self.likelihoods = self.parse_likelihoods()
+                if len(self.likelihoods)==0: #TODO mode = faulty run
+                    self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
+                    self.terminator(mode='Error: Nan found')
+                print(f"Intiating nesting\tInitial pool size is: {len(self.likelihoods)}")
+            self.comm_obj.Barrier()
+
+            self.evidences = []
+            self.all_xi = []
+
+            for i in range(self.nester_niter):
+                self.comm_obj.Barrier()
+                if 'how_did_i_die.txt' in os.listdir('./'):
+                    break
+
+                self.comm_obj.Barrier()
+                if base_process:
+                    # First, get the Wi and Li
+                    curr_Xi = math.exp(-i/self.num_frames_per_iter)
+                    Wi = self.Xi - curr_Xi
+                    if len(self.likelihoods)>0:
+                        Li = min(self.likelihoods)
+
+                    # Do housekeeping tasks
+                    self.Xi = curr_Xi
+                    self.worst_li_list.append(Li)
+                    self.worst_xi_list.append(self.Xi)
+                self.comm_obj.Barrier()
+
+                # Now generate new sample for the next iteration
+                self.rex_macro.vars['number_of_frames'] = self.num_frames_per_iter
+                self.rex_macro.vars["replica_exchange_swap"] = True
+                self.rex_macro.execute_macro()
+                self.comm_obj.Barrier()
+
+                if base_process:
+                    newly_sampled_likelihoods = self.parse_likelihoods()
+                    nsgl = [li for li in newly_sampled_likelihoods if li>Li]
+
+                    # Get new likelihood and collect Z
+                    if len(nsgl)>0:
+                        new_Li=max(nsgl)
+                        self.likelihoods.remove(Li)
+                        self.likelihoods.append(new_Li)
+                        self.Z += float(Li)*float(Wi)
+
+                        self.evidences.append(float(Li)*float(Wi))
+                        self.all_xi.append(math.log(self.Xi))
+                        print(f"Current LiWi: {float(Li)*float(Wi)}")
+
+                        es_counter = 0
+                        if i>1:
+                            self.check_stopper(iteration=i,es_hits=es_counter)
+
+                    else:
+                        new_Li = None
+                        es_counter+=1
+                        print(f"{'---'*10}\nEarly stopper count: {es_counter}\n{'---'*10}")
+                        if es_counter==self.es_limit:
+                            self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
+                            self.terminator(mode='EarlyStopper')
+
+                    print(f"\n-----> Iteration {i}:\tWorst likelihood:{Li}\t\tat Xi:{self.Xi}\t\tEstimated evidence:{self.Z}\n")
+                self.comm_obj.Barrier()
+            
+            if base_process:
                 self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-                self.terminator(mode='Error: Nan found')
-            print(f"Intiating nesting\tInitial pool size is: {len(self.likelihoods)}")
-        self.comm_obj.Barrier()
-
-        self.evidences = []
-        self.all_xi = []
-
-        for i in range(self.nester_niter):
-            self.comm_obj.Barrier()
-            if 'how_did_i_die.txt' in os.listdir('./'):
-                break
-
-            self.comm_obj.Barrier()
-            if base_process:
-                # First, get the Wi and Li
-                curr_Xi = math.exp(-i/self.num_frames_per_iter)
-                Wi = self.Xi - curr_Xi
-                if len(self.likelihoods)>0:
-                    Li = min(self.likelihoods)
-
-                # Do housekeeping tasks
-                self.Xi = curr_Xi
-                self.worst_li_list.append(Li)
-                self.worst_xi_list.append(self.Xi)
-            self.comm_obj.Barrier()
-
-            # Now generate new sample for the next iteration
-            self.rex_macro.vars['number_of_frames'] = self.num_frames_per_iter
-            self.rex_macro.vars["replica_exchange_swap"] = True
-            self.rex_macro.execute_macro()
-            self.comm_obj.Barrier()
-
-            if base_process:
-                newly_sampled_likelihoods = self.parse_likelihoods()
-                nsgl = [li for li in newly_sampled_likelihoods if li>Li]
-
-                # Get new likelihood and collect Z
-                if len(nsgl)>0:
-                    new_Li=max(nsgl)
-                    self.likelihoods.remove(Li)
-                    self.likelihoods.append(new_Li)
-                    self.Z += float(Li)*float(Wi)
-
-                    self.evidences.append(float(Li)*float(Wi))
-                    self.all_xi.append(math.log(self.Xi))
-                    print(f"Current LiWi: {float(Li)*float(Wi)}")
-
-                    es_counter = 0
-                    if i>1:
-                        self.check_stopper(iteration=i,es_hits=es_counter)
-
-                else:
-                    new_Li = None
-                    es_counter+=1
-                    print(f"{'---'*10}\nEarly stopper count: {es_counter}\n{'---'*10}")
-                    if es_counter==self.es_limit:
-                        self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-                        self.terminator(mode='EarlyStopper')
-
-                print(f"\n-----> Iteration {i}:\tWorst likelihood:{Li}\t\tat Xi:{self.Xi}\t\tEstimated evidence:{self.Z}\n")
-            self.comm_obj.Barrier()
-        
-        if base_process:
-            self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-            if i==self.nester_niter:
-                self.terminator(mode='MaxIterations')
+                if i==self.nester_niter:
+                    self.terminator(mode='MaxIterations')
 
 
 
