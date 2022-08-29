@@ -711,25 +711,26 @@ class NestedSampling():
         #TODO add mode of failure due to nan and dont accumulate/write evidence in that case.
         # MPI.Finalize()
 
-        from matplotlib import pyplot as plt
-        plt.plot(self.all_xi,self.evidences)
-        plt.xlabel('Log Xi')
-        plt.ylabel('Evidence')
-        plt.savefig('LiXi.png')
+        if not 'error' in mode.lower():
+            from matplotlib import pyplot as plt
+            plt.plot(self.all_xi,self.evidences)
+            plt.xlabel('Log Xi')
+            plt.ylabel('Evidence')
+            plt.savefig('LiXi.png')
         
-        with open('evidence_values.dat','w') as ev:
-            for z in self.evidences:
-                ev.write(f'{z}\n')
+            unsampled_evidence = self.estimate_unsampled_evidence()
+            total_evidence = unsampled_evidence + self.Z
+            print(f"Estimated evidence: sampled={self.Z} and total={total_evidence}")
+
+            with open("estimated_evidence.dat",'a') as eedat:
+                eedat.write(f"{total_evidence}\n")
+            with open('evidence_values.dat','w') as ev:
+                for z in self.evidences:
+                    ev.write(f'{z}\n')
 
         with open('how_did_i_die.txt','w') as modef:
             modef.write(f"{mode}\n")
             
-        if not 'error' in mode.lower():
-            unsampled_evidence = self.estimate_unsampled_evidence()
-            total_evidence = unsampled_evidence + self.Z
-            print(f"Estimated evidence: sampled={self.Z} and total={total_evidence}")
-            with open("estimated_evidence.dat",'a') as eedat:
-                eedat.write(f"{total_evidence}\n")
         
 
     def execute_nested_sampling(self):
@@ -748,7 +749,7 @@ class NestedSampling():
         # Build the nest
         print(f"Building nest with {self.num_init_frames}")
         self.comm_obj.Barrier()
-        if not 'how_did_i_die.txt' in os.listdir('./'):
+        if not 'shuffle_error.log' in os.listdir('./'):
             self.sample_initial_frames()
             self.comm_obj.Barrier()
 
