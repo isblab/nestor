@@ -821,7 +821,7 @@ class NestedSampling():
             
             if base_process:
                 self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-                if i==self.nester_niter:
+                if i == self.nester_niter-1:
                     self.terminator(mode='MaxIterations')
 
 
