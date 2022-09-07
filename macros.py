@@ -618,8 +618,7 @@ class ReplicaExchange0(object):
 
 
 class NestedSampling():
-    def __init__(self,num_init_frames,num_frames_per_iter,nester_niter,nester_restraints,rex_macro,stopper_cap,early_stopper_cap,init_error):
-        # self.ns = IMP.pmi.samplers.NestedSampler()
+    def __init__(self,num_init_frames,num_frames_per_iter,nester_niter,nester_restraints,rex_macro,stopper_cap,early_stopper_cap):
         self.num_init_frames = num_init_frames
         self.num_frames_per_iter = num_frames_per_iter
         self.nester_niter = nester_niter
@@ -628,7 +627,6 @@ class NestedSampling():
         self.rex_macro.nest = True
         self.stopper_cap = stopper_cap
         self.es_limit = early_stopper_cap
-        self.init_error = init_error
         self.ere_threshold = 0.5
         self.stopper_hits = 0
         self.avg_li = 0
@@ -640,29 +638,20 @@ class NestedSampling():
         self.rex_macro.execute_macro()
 
 
-    def parse_likelihoods(self,fhead='likelihoods_'):
+    def parse_likelihoods(self,iteration,fhead='likelihoods_'):
         sampled_likelihoods = []
         all_likelihood_binaries = glob.glob(f'{fhead}*')
+
         for binfile in all_likelihood_binaries:
             likelihoods=[]
             with open(binfile,'rb') as rlif:
                 likelihoods = pickle.load(rlif)
                 for li in likelihoods:
                     sampled_likelihoods.append(li)
-                # except:
-                #     print(f"Failed to open {binfile}. Maybe this file is empty...!")
-            
-            # if len(likelihoods)!=0:
-            #     for li in likelihoods:
-            #         sampled_likelihoods.append(li)
-            # else:
-            #     print(binfile)
-
             os.remove(binfile)
             
         if math.nan in sampled_likelihoods:
-            self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-            self.terminator(mode='Error: Nan found')
+            self.terminator(mode='Error: Nan found',iter=i, conv_hits=self.stopper_hits, es_hits=self.es_counter)
         
         return sampled_likelihoods
 
@@ -690,32 +679,22 @@ class NestedSampling():
                 self.stopper_hits = 0
 
             if self.stopper_hits >= self.stopper_cap:
-                self.get_log(iter=iteration, conv_hits=self.stopper_hits, es_hits=es_hits)
-                self.terminator(mode='Convergence')
+                self.terminator(mode='Convergence',iter=iteration, conv_hits=self.stopper_hits, es_hits=self.es_counter)
 
 
     def estimate_unsampled_evidence(self):
-        # max_li = max(self.likelihoods)
         avg_li = sum(self.likelihoods)/len(self.likelihoods)
         sampled_till_xi = self.Xi
         unsampled_evidence = avg_li * sampled_till_xi
         return unsampled_evidence
 
 
-    def get_log(self,iter,conv_hits,es_hits):
-        with open("run.log",'w') as rlf:
-            rlf.write(f"Last iteration: {iter} \nCurrent convergence criterion hits: {conv_hits} \nCurrent early stopper_hits: {es_hits}\n")
-
-
-    def terminator(self,mode):
-        #TODO add mode of failure due to nan and dont accumulate/write evidence in that case.
-        # MPI.Finalize()
-
+    def terminator(self,mode,iter,conv_hits,es_hits):
         if not 'error' in mode.lower():
             from matplotlib import pyplot as plt
-            plt.plot(self.all_xi,self.evidences)
+            plt.plot(self.all_xi,self.lixi)
             plt.xlabel('Log Xi')
-            plt.ylabel('Evidence')
+            plt.ylabel('LiXi')
             plt.savefig('LiXi.png')
         
             unsampled_evidence = self.estimate_unsampled_evidence()
@@ -724,12 +703,15 @@ class NestedSampling():
 
             with open("estimated_evidence.dat",'a') as eedat:
                 eedat.write(f"{total_evidence}\n")
-            with open('evidence_values.dat','w') as ev:
-                for z in self.evidences:
+            with open('lixi_values.dat','w') as ev:
+                for z in self.lixi:
                     ev.write(f'{z}\n')
 
         with open('how_did_i_die.txt','w') as modef:
             modef.write(f"{mode}\n")
+        
+        with open("run.log",'w') as rlf:
+            rlf.write(f"Last iteration: {iter} \nCurrent convergence criterion hits: {conv_hits} \nCurrent early stopper_hits: {es_hits}\n")
             
         
 
@@ -739,29 +721,24 @@ class NestedSampling():
         self.Z = 0
         self.worst_li_list = []
         self.worst_xi_list = []
-        es_counter = 0
+        self.es_counter = 0
         base_process = (self.comm_obj.Get_rank()==0)
         
-        if self.init_error:
-            self.get_log(iter=0, conv_hits=self.stopper_hits, es_hits=es_counter)
-            self.terminator(mode='Error: Shuffle configuration error')
+        if 'shuffle_error.log' in os.listdir('./'):
+            self.terminator(mode='Error: Shuffle configuration error',iter=0,conv_hits=0,es_hits=0)
         
         # Build the nest
-        print(f"Building nest with {self.num_init_frames}")
         self.comm_obj.Barrier()
         if not 'shuffle_error.log' in os.listdir('./'):
+            print(f"Building nest with {self.num_init_frames}")
             self.sample_initial_frames()
             self.comm_obj.Barrier()
 
             if base_process:
-                self.likelihoods = self.parse_likelihoods()
-                if len(self.likelihoods)==0: #TODO mode = faulty run
-                    self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-                    self.terminator(mode='Error: Nan found')
-                print(f"Intiating nesting\tInitial pool size is: {len(self.likelihoods)}")
+                self.likelihoods = self.parse_likelihoods(iteration=0)
+        
             self.comm_obj.Barrier()
-
-            self.evidences = []
+            self.lixi = []
             self.all_xi = []
 
             for i in range(self.nester_niter):
@@ -790,7 +767,9 @@ class NestedSampling():
                 self.comm_obj.Barrier()
 
                 if base_process:
-                    newly_sampled_likelihoods = self.parse_likelihoods()
+                    newly_sampled_likelihoods = self.parse_likelihoods(iteration=i)
+                    if math.nan in newly_sampled_likelihoods:
+                        break
                     nsgl = [li for li in newly_sampled_likelihoods if li>Li]
 
                     # Get new likelihood and collect Z
@@ -800,29 +779,27 @@ class NestedSampling():
                         self.likelihoods.append(new_Li)
                         self.Z += float(Li)*float(Wi)
 
-                        self.evidences.append(float(Li)*float(Wi))
+                        self.lixi.append(float(Li)*float(self.Xi))
                         self.all_xi.append(math.log(self.Xi))
                         print(f"Current LiWi: {float(Li)*float(Wi)}")
 
-                        es_counter = 0
+                        self.es_counter = 0
                         if i>1:
-                            self.check_stopper(iteration=i,es_hits=es_counter)
+                            self.check_stopper(iteration=i,es_hits=self.es_counter)
 
                     else:
                         new_Li = None
-                        es_counter+=1
-                        print(f"{'---'*10}\nEarly stopper count: {es_counter}\n{'---'*10}")
-                        if es_counter==self.es_limit:
-                            self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
-                            self.terminator(mode='EarlyStopper')
+                        self.es_counter+=1
+                        print(f"{'---'*10}\nEarly stopper count: {self.es_counter}\n{'---'*10}")
+                        if self.es_counter==self.es_limit:
+                            self.terminator(mode='EarlyStopper',iter=i, conv_hits=self.stopper_hits, es_hits=self.es_counter)
 
                     print(f"\n-----> Iteration {i}:\tWorst likelihood:{Li}\t\tat Xi:{self.Xi}\t\tEstimated evidence:{self.Z}\n")
-                self.comm_obj.Barrier()
             
+            self.comm_obj.Barrier()
             if base_process:
-                self.get_log(iter=i, conv_hits=self.stopper_hits, es_hits=es_counter)
                 if i == self.nester_niter-1:
-                    self.terminator(mode='MaxIterations')
+                    self.terminator(mode='MaxIterations',iter=i, conv_hits=self.stopper_hits, es_hits=self.es_counter)
 
 
 
