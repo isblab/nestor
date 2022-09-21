@@ -630,18 +630,15 @@ class NestedSampling():
         self.ere_threshold = 0.5
         self.stopper_hits = 0
         self.avg_li = 0
+        self.comm_obj = MPI.COMM_WORLD
         self.Xi = 1
         self.Z = 0
         self.H = 0
-        self.h_iter = []
-        self.h_list = []
         self.worst_li_list = []
         self.worst_xi_list = []
-        self.log_worst_likelihoods = []
-        self.log_xi = []
         self.es_counter = 0
-        self.comm_obj = MPI.COMM_WORLD
 
+        
 
     def sample_initial_frames(self):
         self.rex_macro.vars['number_of_frames'] = self.num_init_frames
@@ -706,11 +703,10 @@ class NestedSampling():
     def terminator(self,mode,iteration,conv_hits,es_hits):
         if not 'error' in mode.lower():
             from matplotlib import pyplot as plt
-            fig,ax = plt.subplots(2)
-            ax[0].plot(self.log_xi,self.log_worst_likelihoods)
-            ax[0].set_xlabel('log(Xi)')
-            ax[0].set_ylabel('log(Li)')
-            # plt.savefig('LiXi.png')
+            plt.plot(self.log_xi,self.log_worst_likelihoods)
+            plt.xlabel('log(Xi)')
+            plt.ylabel('log(Li)')
+            plt.savefig('LiXi.png')
         
             unsampled_evidence = self.estimate_unsampled_evidence()
             total_evidence = unsampled_evidence + self.Z
@@ -719,10 +715,9 @@ class NestedSampling():
             with open("estimated_evidence.dat",'a') as eedat:
                 eedat.write(f"{total_evidence}\n")
 
-            ax[1].plot(self.h_iter,self.h_list)
-            ax[1].set_xlabel('Iteration')
-            ax[1].set_ylabel('H')
-            fig.savefig('H_and_lixi.png')
+            it = [a for a in range(iteration+1)]
+            plt.plot(it,self.h_list)
+            ptl.show()
         
 
         with open('how_did_i_die.txt','w') as modef:
@@ -838,20 +833,14 @@ class NestedSampling():
         self.Z += Z
 
 
-    def h_convergence(self,iteration):
-        from statistics import mean
-        h_avg1 = mean(self.h_list[-25:])
-        h_avg2 = mean(self.h_list[-50:-25])
-        if round(h_avg1,3) == round(h_avg2,3):
-            self.terminator(mode='H_Convergence',iteration=iteration, conv_hits=self.stopper_hits, es_hits=self.es_counter)
-
-
     def execute_nested_sampling2(self):
         i = 0
         true_iter = 0
+        self.log_worst_likelihoods = []
+        self.log_xi = []
         base_process = (self.comm_obj.Get_rank()==0)
         self.comm_obj.Barrier()
-
+        self.h_list = []
         if not 'shuffle_error.log' in os.listdir('./'):
             self.comm_obj.Barrier()
             self.sample_initial_frames()
@@ -895,13 +884,10 @@ class NestedSampling():
                             self.terminator(mode='EarlyStopper',iteration=true_iter, conv_hits=self.stopper_hits, es_hits=self.es_counter)
                     true_iter += 1        
                     print(f'\n-----> True iteration: {true_iter}\tCalculation iteration: {i}\tES_counter: {es_counter}\tEvidence: {self.Z}\tInformation obtained: {self.H}\n')
-                    self.h_list.append(self.H)
-                    self.h_iter.append(true_iter)
-                    if true_iter > 50:
-                        self.h_convergence(true_iter)
-
+                
                 self.comm_obj.Barrier()
-
+                self.h_list.append(self.H)
+                
 
             if base_process and true_iter==self.nester_niter:
                 self.terminator(mode='MaxIterations',iteration=true_iter, conv_hits=self.stopper_hits, es_hits=self.es_counter)
