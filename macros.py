@@ -816,7 +816,7 @@ class NestedSampling():
                     print(f"\n-----> Iteration {true_iter}:\tWorst likelihood:{Li}\t\tat Xi:{self.Xi}\t\tEstimated evidence:{self.Z}\n")
                 
                 true_iter += 1
-                
+               
             self.comm_obj.Barrier()
             if base_process and true_iter == self.nester_niter:
                 self.terminator(mode='MaxIterations',iteration=true_iter, conv_hits=self.stopper_hits, es_hits=self.es_counter)
@@ -864,6 +864,7 @@ class NestedSampling():
             self.comm_obj.Barrier()
 
             while true_iter < self.nester_niter:
+                self.comm_obj.Barrier()
                 if 'how_did_i_die.txt' in os.listdir('./'):
                     break
 
@@ -900,7 +901,9 @@ class NestedSampling():
                     if true_iter > 50:
                         self.h_convergence(true_iter)
 
-                self.comm_obj.Barrier()
+            print('Out of the loop1')
+            self.comm_obj.Barrier()
+            print('Out of the loop')
 
 
             if base_process and true_iter==self.nester_niter:
