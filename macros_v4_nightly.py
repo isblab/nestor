@@ -677,7 +677,7 @@ class NestedSampling():
             self.plateau_hits = 0
 
         if self.plateau_hits == self.max_plateau_hits:
-            self.termination_mode = 'Plateau'
+            self.termination_mode = 'MaxPlateauHits'
             self.finished = True
 
     def terminator(self,iteration,plateau_hits,failed_iter,worst_likelihood):
@@ -698,6 +698,7 @@ class NestedSampling():
             rlf.write(f"Current plateau hits: {plateau_hits}\n")
             rlf.write(f"Current failed iterations: {failed_iter}\n")
             rlf.write(f"Obtained information: {self.H}\n")
+            rlf.write(f"Accumulated evidence: {self.Z}\n")
             rlf.write(f"Analytical uncertainty: {math.sqrt(self.H / self.num_init_frames)}\n")
             rlf.write(f"How did I die?: {self.termination_mode}\n")
 
@@ -713,7 +714,7 @@ class NestedSampling():
         self.Xi = curr_xi
 
         # compute H
-        if iteration>0:
+        if iteration>1:
 
             first_term = ((curr_li*curr_wi) / curr_zi) * math.log(curr_li)
 
@@ -745,7 +746,6 @@ class NestedSampling():
                     # a. parse_likelihoods had a nan error, called terminator.
                     # b. convergence criterion plateau reached, called terminator.
                     # c. convergence criterion max_failed_iterations reached, called terminator.
-
                     break
 
                 if not 'fin.tmp' in os.listdir('./'):
@@ -760,64 +760,63 @@ class NestedSampling():
 
                     if len(self.likelihoods)==0:
                         self.terminator(iteration=true_iter, plateau_hits=self.plateau_hits, failed_iter=self.failed_iter, worst_likelihood=Li)
-                        break
-
-                    Li = min(self.likelihoods)
-
-                    if not self.finished:
-                        newly_sampled_likelihoods = self.parse_likelihoods(iteration=true_iter)
-                        candidate_li = max(newly_sampled_likelihoods)
-                    else: # unraveling
-                        candidate_li = Li
-
-                    if candidate_li >= Li:
-
-                        self.likelihoods.remove(Li)
-
-                        if not self.finished:
-                            self.likelihoods.append(candidate_li)
-
-                        self.compute_evidence_H(iteration=i,worst_likelihood=Li)
-
-                        self.log_worst_li.append(math.log(Li))
-                        self.log_xi.append(math.log(self.Xi))
-                        self.worst_li_list.append(Li)
-                        self.worst_xi_list.append(self.Xi)
-
-                        if not self.finished:
-                            if i>1:
-                                self.check_plateau()
-
-                            self.failed_iter = 0
-
-                        i += 1
+                        
                     else:
-                        self.failed_iter+=1
-                        if self.failed_iter == self.max_failed_iter:
-                            self.termination_mode = 'MaxFailedIterations'
-                            self.finished = True
+                        Li = min(self.likelihoods)
 
-                    true_iter += 1
-                    print(f'\n-----> True iteration: {true_iter} {" "*5} Calculation iteration: {i} {" "*5} Failed iteration: {self.failed_iter} {" "*5} Evidence: {self.Z} {" "*5} Terminating: {self.finished}\n')
-                    if self.finished:
-                        with open('fin.tmp','w') as ftmp:
-                            ftmp.write('Finishing')
+                        if not self.finished:
+                            newly_sampled_likelihoods = self.parse_likelihoods(iteration=true_iter)
+                            candidate_li = max(newly_sampled_likelihoods)
+                        else: # unraveling
+                            candidate_li = Li
 
+                        if candidate_li >= Li:
+
+                            self.likelihoods.remove(Li)
+
+                            if not self.finished:
+                                self.likelihoods.append(candidate_li)
+
+                            self.compute_evidence_H(iteration=i,curr_li=Li)
+
+                            self.log_worst_li.append(math.log(Li))
+                            self.log_xi.append(math.log(self.Xi))
+                            self.worst_li_list.append(Li)
+                            self.worst_xi_list.append(self.Xi)
+
+                            if not self.finished:
+                                if i>1:
+                                    self.check_plateau()
+
+                                self.failed_iter = 0
+
+                            i += 1
+                        else:
+                            self.failed_iter+=1
+                            if self.failed_iter == self.max_failed_iter:
+                                self.termination_mode = 'MaxFailedIterations'
+                                self.finished = True
+
+                        true_iter += 1
+                        print(f'\n-----> True iteration: {true_iter} {" "*5} Calculation iteration: {i} {" "*5} Failed iteration: {self.failed_iter} {" "*5} Evidence: {self.Z} {" "*5} Terminating: {self.finished}\n')
+                        if self.finished and not 'fin.tmp' in os.listdir('./'):
+                            with open('fin.tmp','w') as ftmp:
+                                ftmp.write('Finishing')
                 self.comm_obj.Barrier()
 
-            if base_process and true_iter==self.nester_niter:
+                
 
+            if base_process:
+                os.remove('fin.tmp')
+            if base_process and true_iter==self.nester_niter:
                 self.termination_mode = 'Error: MaxIterations reached without convergence criteria'
                 self.terminator(iteration=true_iter, plateau_hits=self.plateau_hits, failed_iter=self.failed_iter, worst_likelihood=Li)
-
-            self.comm_obj.Barrier()  #TO CHECK
 
         else:
             if base_process:
                 self.termination_mode = 'Error: Shuffle configuration error'
-                self.terminator(iteration=0,plateau_hits=0,failed_iter=0, worst_likelihood=0)
-
-            self.comm_obj.Barrier()
+                
+        
 
 
 class BuildSystem(object):
