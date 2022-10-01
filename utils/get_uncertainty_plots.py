@@ -11,12 +11,16 @@ def get_evidences_H(resolution_dir):
     analytical_uncertainties = []
     for run in run_dirs:
         run_log_file = os.path.join(run,'run.log')
-        with open(run_log_file,'r') as rlf:
-            for ln in rlf.readlines():
-                if ln.startswith('Accumulated evidence'):
-                    evidences.append(float(ln.strip().split(': ')[-1]))
-                if ln.startswith('Analytical uncertainty'):
-                    analytical_uncertainties.append(float(ln.strip().split(': ')[-1]))
+        try:
+            with open(run_log_file,'r') as rlf:
+                for ln in rlf.readlines():
+                    if ln.startswith('Accumulated evidence'):
+                        evidences.append(float(ln.strip().split(': ')[-1]))
+                    if ln.startswith('Analytical uncertainty'):
+                        analytical_uncertainties.append(float(ln.strip().split(': ')[-1]))
+        except FileNotFoundError:
+            print('Shuffle configuration error found. Skipping that run...')
+            
     return evidences, analytical_uncertainties
 
 
