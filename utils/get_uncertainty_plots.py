@@ -26,21 +26,24 @@ x_vals = []
 ana_unc_vals = []
 evi_std_vals = []
 for res in resolutions:
-    evidences, ana_unc = get_evidences_H('res_'+res+'/')
-    evidence_std = np.std(evidences)
-    ana_unc_mean = np.mean(ana_unc)
+    try:
+        evidences, ana_unc = get_evidences_H('res_'+res+'/')
+        evidence_std = np.std(evidences)
+        ana_unc_mean = np.mean(ana_unc)
 
-    x_vals.append(f'res_{res}')
-    ana_unc_vals.append(ana_unc_mean)
-    evi_std_vals.append(math.log(evidence_std))
+        x_vals.append(f'res_{res}')
+        ana_unc_vals.append(ana_unc_mean)
+        evi_std_vals.append(math.log(evidence_std))
+    except FileNotFoundError:
+        print('Shuffle configuration error found. Skipping that run...')
 
 fig,ax1 = plt.subplots()
-ax1.plot(x_vals,ana_unc_vals,c='C1',label='Analytical uncertainties')
+ax1.plot(x_vals,ana_unc_vals, marker='o', c='C1',label='Analytical uncertainties')
 ax1.set_xlabel('Resolutions')
 ax1.set_ylabel('Analytical uncertainties')
 
 ax2 = ax1.twinx()
-ax2.plot(x_vals,evi_std_vals,c='C2',label='Log(std(evidences))')
+ax2.plot(x_vals,evi_std_vals,marker='o', c='C2',label='Log(std(evidences))')
 ax2.set_ylabel('Log standard deviations of evidences')
 fig.legend()
 fig.savefig('tmp.png')
