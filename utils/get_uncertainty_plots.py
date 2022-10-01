@@ -20,7 +20,7 @@ def get_evidences_H(resolution_dir):
                         analytical_uncertainties.append(float(ln.strip().split(': ')[-1]))
         except FileNotFoundError:
             print('Shuffle configuration error found. Skipping that run...')
-            
+
     return evidences, analytical_uncertainties
 
 
