@@ -680,7 +680,9 @@ class NestedSampling():
             self.termination_mode = 'MaxPlateauHits'
             self.finished = True
 
+
     def terminator(self,iteration,plateau_hits,failed_iter,worst_likelihood):
+        from math import log
         if not 'error' in self.termination_mode.lower():
             print(f"Estimated evidence: sampled={self.Z}")
             with open("estimated_evidence.dat",'a') as eedat:
@@ -699,6 +701,7 @@ class NestedSampling():
             rlf.write(f"Current failed iterations: {failed_iter}\n")
             rlf.write(f"Obtained information: {self.H}\n")
             rlf.write(f"Accumulated evidence: {self.Z}\n")
+            rlf.write(f"Log accumulated evidence: {log(self.Z)}\n")
             rlf.write(f"Analytical uncertainty: {math.sqrt(self.H / self.num_init_frames)}\n")
             rlf.write(f"How did I die?: {self.termination_mode}\n")
 
@@ -715,12 +718,10 @@ class NestedSampling():
 
         # compute H
         if iteration>1:
-
             first_term = ((curr_li*curr_wi) / curr_zi) * math.log(curr_li)
-
             second_term = (prev_zi/curr_zi) * (self.H + math.log(prev_zi))
-
             self.H = first_term + second_term - math.log(curr_zi)
+
 
     def execute_nested_sampling2(self):
         i = 0
