@@ -1,32 +1,46 @@
 import os,sys
 import math
+import glob
 import numpy as np
 from matplotlib import pyplot as plt
 
-trial_id = sys.argv[1]
-files = ['res_01/estimated_evidences.dat',\
-        'res_05/estimated_evidences.dat',\
-        'res_10/estimated_evidences.dat',\
-        'res_20/estimated_evidences.dat',\
-        'res_30/estimated_evidences.dat',\
-        'res_50/estimated_evidences.dat']
-
-mean_log_evi = []
-for res in files:
+def get_evidences_H(resolution_dir):
+    run_dirs = glob.glob(os.path.join(resolution_dir,'run*'))
     evidences = []
-    log_evidences = []
+    analytical_uncertainties = []
+    for run in run_dirs:
+        run_log_file = os.path.join(run,'run.log')
+        try:
+            with open(run_log_file,'r') as rlf:
+                for ln in rlf.readlines():
+                    if ln.startswith('Accumulated evidence'):
+                        evidences.append(math.log(float(ln.strip().split(': ')[-1])))
+                    if ln.startswith('Analytical uncertainty'):
+                        analytical_uncertainties.append(float(ln.strip().split(': ')[-1]))
+        except FileNotFoundError:
+            print('Shuffle configuration error found. Skipping that run...')
 
-    with open(res,'r') as evf:
-        for ln in evf.readlines():
-            evidence = float(ln.strip())
-            evidences.append(evidence)
-            log_evidences.append(-math.log(evidence))
+    return evidences, analytical_uncertainties
 
-    std_err = np.std(log_evidences)/math.sqrt(len(log_evidences))
-    mean_log_evi.append(np.mean(log_evidences))
-    plt.errorbar(res.split('/')[0], np.mean(log_evidences), yerr=std_err, fmt='o')
 
-plt.yticks(np.arange(int(min(mean_log_evi)-std_err),int(max(mean_log_evi))+std_err,2))
-plt.grid(axis='y')
-# plt.savefig(f'trial_{trial_id}_evidence.png') # Include trial number in fname
+resolutions = sys.argv[1:]
+
+x_vals = []
+evi_mean_vals = []
+evi_std_err_vals = []
+for res in resolutions:
+    try:
+        evidences, _ = get_evidences_H('res_'+res+'/')
+        evi_std_err = np.std(evidences)/math.sqrt(len(evidences))
+        evi_mean = np.mean(evidences)
+
+        x_vals.append(f'res_{res}')
+        evi_mean_vals.append(evi_mean)
+        evi_std_err_vals.append(evi_std_err)
+        plt.errorbar(f'res_{res}', evi_mean, yerr=evi_std_err, marker='o')
+
+
+    except FileNotFoundError:
+        print('Shuffle configuration error found. Skipping that run...')
+
 plt.show()

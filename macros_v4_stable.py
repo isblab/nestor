@@ -695,15 +695,15 @@ class NestedSampling():
             ax.set_ylabel('log(Li)')
             fig.savefig('lixi.png')
 
-        with open("run.log",'w') as rlf:
-            rlf.write(f"Last iteration: {iteration}\n")
-            rlf.write(f"Current plateau hits: {plateau_hits}\n")
-            rlf.write(f"Current failed iterations: {failed_iter}\n")
-            rlf.write(f"Obtained information: {self.H}\n")
-            rlf.write(f"Accumulated evidence: {self.Z}\n")
-            rlf.write(f"Log accumulated evidence: {log(self.Z)}\n")
-            rlf.write(f"Analytical uncertainty: {math.sqrt(self.H / self.num_init_frames)}\n")
-            rlf.write(f"How did I die?: {self.termination_mode}\n")
+            with open("run.log",'w') as rlf:
+                rlf.write(f"Last iteration: {iteration}\n")
+                rlf.write(f"Current plateau hits: {plateau_hits}\n")
+                rlf.write(f"Current failed iterations: {failed_iter}\n")
+                rlf.write(f"Obtained information: {self.H}\n")
+                rlf.write(f"Accumulated evidence: {self.Z}\n")
+                rlf.write(f"Log accumulated evidence: {log(self.Z)}\n")
+                rlf.write(f"Analytical uncertainty: {math.sqrt(self.H / self.num_init_frames)}\n")
+                rlf.write(f"How did I die?: {self.termination_mode}\n")
 
 
     def compute_evidence_H(self,iteration,curr_li):
@@ -816,7 +816,7 @@ class NestedSampling():
         else:
             if base_process:
                 self.termination_mode = 'Error: Shuffle configuration error'
-                
+                self.terminator(iteration=0, plateau_hits=0, failed_iter=0, worst_likelihood=0)                
         
 
 
