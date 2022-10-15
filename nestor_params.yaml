@@ -1,0 +1,18 @@
+
+# Please provide absolute paths for imp_path and modeling_script_path keys
+imp_path: '/home/shreyas/Projects/cgopt/imp-clean/build/setup_environment.sh'
+modeling_script_path: '/home/shreyas/Projects/cgopt/systems/to_ms/nruns/gtusc/gtusc_modeling.py'
+
+# Wrapper params
+num_runs: 1
+num_cores: 1
+trial_name: 'n_runs'
+resolutions: ['50']
+resolution_sets: [['50']]
+
+# NestOR params
+max_nester_iter: 5000
+num_init_frames: 10
+num_frames_per_iter: 2
+max_plateau_hits: 10
+max_failed_iterations: 2

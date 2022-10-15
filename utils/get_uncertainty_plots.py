@@ -46,7 +46,7 @@ for res in resolutions:
 
     ana_unc_mean_vals.append(np.mean(ana_unc))
     evi_std_err_vals.append(evidence_std_err)
-    print(f"Analytical uncertainty standard deviation: {np.std(ana_unc)}") #/math.sqrt(len(ana_unc))}
+    # print(f"Analytical uncertainty standard deviation: {np.std(ana_unc)}") #/math.sqrt(len(ana_unc))}
 
 
 uniq_x = []
@@ -59,9 +59,11 @@ fig,ax = plt.subplots(3, sharex=True)
 
 ax[0].errorbar(uniq_x, evidence_mean_vals, yerr=ana_unc_mean_vals, marker='o', label='logZ with ana_unc errorbar')
 ax[0].set_ylabel('Log evidence')
+# ax[0].legend()
 
 ax[1].errorbar(uniq_x, evidence_mean_vals, yerr=evi_std_err_vals, marker='o', c='C3', label='logZ with std error errorbar')
 ax[1].set_ylabel('Log evidence')
+# ax[1].legend()
 
 ax[2].scatter(x_vals,ana_unc_vals, c='C2', marker='o', label='Analytical uncertainties')
 ax[2].plot(uniq_x, ana_unc_mean_vals, marker='*', c='C2', label='Mean analytical uncertainties')
@@ -69,9 +71,11 @@ ax[2].set_xlabel('Resolutions')
 ax[2].set_ylabel('Analytical uncertainties')
 
 ax2 = ax[2].twinx()
-ax2.plot(uniq_x, evi_std_err_vals, c='C4', marker='o', label='Log(std(evidences))')
-ax2.set_ylabel('Std. deviations of log(evidences)')
+ax2.plot(uniq_x, evi_std_err_vals, c='C4', marker='o', label='Standard error (log(Z)')
+ax2.set_ylabel('Stderr(log(evidences))')
+# ax[2].legend()
+# ax2.legend()
 
 fig.legend()
-# fig.savefig('uncertainty_plot.png')
-plt.show()
+fig.savefig('uncertainty_plot.png',dpi=400)
+# plt.show()
