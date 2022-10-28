@@ -9,6 +9,7 @@ xl_file = sys.argv[1]
 perc_to_evi = 0.7
 
 xls = []
+header = None
 with open(xl_file,'r') as xlf:
     for ln in xlf.readlines():
         if (not ln.startswith('Protein1')) and (not ln.startswith('Linker')):
@@ -31,11 +32,13 @@ if len(dir_path)>1:
 else:
     dir_path = './'
 with open(f'{dir_path}/sampling_{fname}','w') as sf:
-    sf.write(header)
+    if not header is None:
+        sf.write(header)
     for lnk in sampling:
         sf.write(lnk)
 
 with open(f'{dir_path}/evicalc_{fname}','w') as evif:
-    evif.write(header)
+    if not header is None:
+        evif.write(header)
     for lnk in evi_calc:
         evif.write(lnk)
