@@ -52,6 +52,9 @@ fig2 = plt.figure()
 fax2 = fig2.add_subplot()
 fig3 = plt.figure()
 fax3 = fig3.add_subplot()
+fig4 = plt.figure()
+fax4 = fig4.add_subplot()
+
 
 master_stderr_evidences = []
 master_stderr_ana_uncertainties = []
@@ -60,6 +63,7 @@ t_plots = []
 for i,run in enumerate(runs):
     xvals = []
     times = []
+    mean_evidences = []
     stderr_evidences = []
     stderr_ana_uncertainties = []
 
@@ -71,22 +75,23 @@ for i,run in enumerate(runs):
         stderr_ana_unc = np.std(ana_unc) / (math.sqrt(len(ana_unc)))
         stderr_ana_uncertainties.append(stderr_ana_unc)
         xvals.append(f'res_{res}')
+        mean_evidences.append(np.mean(evidences))
 
     master_stderr_evidences.append(stderr_evidences)
     master_stderr_ana_uncertainties.append(stderr_ana_uncertainties)
 
-    t_plt, = ax[2].plot(xvals,times, marker='o',label=run, c=f'C{i+1}')
-    t_plots.append(t_plt)
     fax3.plot(xvals,times, marker='o',label=run, c=f'C{i+1}')
+    fax4.errorbar(xvals,mean_evidences,yerr=stderr_evidences, marker='o',label=run, c=f'C{i+1}')
 
 
-fax1.plot(xvals, master_stderr_evidences[0], marker='o', label=runs[0], c='C1')
-fax1.plot(xvals, master_stderr_evidences[1], marker='o', label=runs[1], c='C2')
-fax1.plot(xvals, master_stderr_evidences[2], marker='o', label=runs[2], c='C3')
+for i,run in enumerate(runs):
+    fax1.plot(xvals, master_stderr_evidences[i], marker='o', label=runs[i], c=f'C{i+1}')
+# fax1.plot(xvals, master_stderr_evidences[1], marker='o', label=runs[1], c='C2')
+# fax1.plot(xvals, master_stderr_evidences[2], marker='o', label=runs[2], c='C3')
 
-fax2.plot(xvals, master_stderr_ana_uncertainties[0], marker='o', label=runs[0], c='C1')
-fax2.plot(xvals, master_stderr_ana_uncertainties[1], marker='o', label=runs[1], c='C2')
-fax2.plot(xvals, master_stderr_ana_uncertainties[2], marker='o', label=runs[2], c='C3')
+    fax2.plot(xvals, master_stderr_ana_uncertainties[i], marker='o', label=runs[i], c=f'C{i+1}')
+# fax2.plot(xvals, master_stderr_ana_uncertainties[1], marker='o', label=runs[1], c='C2')
+# fax2.plot(xvals, master_stderr_ana_uncertainties[2], marker='o', label=runs[2], c='C3')
 
 fax1.set_xlabel('Resolutions')
 fax1.set_ylabel('StdErr(log(Z))')
@@ -97,10 +102,15 @@ fax2.set_ylabel('StdErr(analytical uncertainty)')
 fax3.set_xlabel('Resolutions')
 fax3.set_ylabel('Time taken (seconds)')
 
+fax4.set_xlabel('Resolutions')
+fax4.set_ylabel('Evidences with std_err errorbar')
+
 fax1.legend()
 fax2.legend()
 fax3.legend()
+fax4.legend()
 
 fig1.savefig(f'stderr_comparision.png',dpi=600)
 fig2.savefig(f'anaerr_comparision.png',dpi=600)
 fig3.savefig(f'timetaken_comparision.png',dpi=600)
+fig4.savefig(f'evidences_comparision.png',dpi=600)
