@@ -658,9 +658,11 @@ class NestedSampling():
                 for li in likelihoods:
                     sampled_likelihoods.append(li)
             os.remove(binfile)
-
-        if math.nan in sampled_likelihoods:
+        
+        is_nan = [math.isnan(li) for li in sampled_likelihoods] 
+        if max(is_nan)==True:
             self.termination_mode ='Error: Nan found'
+            print('NaN found. Terminating...')
             self.terminator(iteration=iteration, plateau_hits=self.plateau_hits, failed_iter=self.failed_iter, worst_likelihood=0)
 
         return sampled_likelihoods
