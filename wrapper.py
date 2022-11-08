@@ -8,7 +8,12 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 
+topology = False
+
 h_param_file = sys.argv[1]
+if 'topology' in sys.argv:
+    topology = True
+
 
 # -----------------------------------------------------------------------------
 # --------------------------------- Functions ---------------------------------
@@ -42,12 +47,16 @@ if not 'resolution_sets' in h_params.keys():
 for res1 in h_params['resolution_sets']:
     processes = []
     for res in res1:
+        if topology:
+            topf = f'topology{res}.txt'
+        else:
+            topf = res
         os.system(f'mkdir res_{res}')
         os.chdir(f'res_{res}')
         for runid in range(h_params['num_runs']):
             run_cmd = ['mpirun','-n','4',
                             h_params['imp_path'], 'python', h_params['modeling_script_path'],
-                            str(runid), res, h_param_file]
+                            str(runid), topf, h_param_file]
 
             os.system(f'mkdir run_{runid}')
             os.chdir(f'run_{runid}')
@@ -68,6 +77,17 @@ for res1 in h_params['resolution_sets']:
 
             errf.write(str(proc.args))
             errf.write(er2write+'\n\n')
+
+
+# ---------------------------- Handle faulty runs -----------------------------
+
+subprocess.run(['python3',
+                '/home/shreyas/Projects/cgopt/optimising_rep/test_run_completion.py',
+                h_param_file, './'])
+
+subprocess.run(['python3',
+                '/home/shreyas/Projects/cgopt/optimising_rep/rerun_faulty_runs.py',
+                h_param_file, './'])
 
 print('Done with the runs')
 
