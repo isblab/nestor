@@ -82,6 +82,28 @@ def concatenate_evidences(resolutions):
     return c_ev_files
 
 
+def plot_evidence_w_stderr(h_params):
+    files = concatenate_evidences(h_params['resolutions'])
+    all_log_evi = []
+    for res in files:
+        evidences = []
+        log_evidences = []
+
+        with open(res,'r') as evf:
+            for ln in evf.readlines():
+                evidence = float(ln.strip())
+                evidences.append(evidence)
+                log_evidences.append(-math.log(evidence))
+                all_log_evi.append(-math.log(evidence))
+        std_err = np.std(log_evidences)/math.sqrt(len(log_evidences))
+        plt.errorbar(int(res.split('/')[0][-2:]), np.mean(log_evidences),
+                    yerr=std_err, fmt='o')
+
+    #plt.yticks(np.arange(int(min(all_log_evi)-5),int(max(all_log_evi))+5,2))
+    # plt.grid(axis='y')
+    plt.savefig(f"trial_{h_params['trial_name']}_evidence.png")
+
+
 # -----------------------------------------------------------------------------
 # ----------------------------------- Main ------------------------------------
 # -----------------------------------------------------------------------------
@@ -135,7 +157,6 @@ while len(torun) != 0:
             processes.append(p)
             os.chdir('../../')
 
-
         else:
             processes = write_error_file(processes)
 
@@ -143,27 +164,5 @@ while len(torun) != 0:
     processes = write_error_file(processes)
     torun = test_run_completion(resolutions)
 
+plot_evidence_w_stderr(h_params)
 print('Done with the runs')
-
-
-# --------------------------------- Plotting ----------------------------------
-
-files = concatenate_evidences(h_params['resolutions'])
-all_log_evi = []
-for res in files:
-    evidences = []
-    log_evidences = []
-
-    with open(res,'r') as evf:
-        for ln in evf.readlines():
-            evidence = float(ln.strip())
-            evidences.append(evidence)
-            log_evidences.append(-math.log(evidence))
-            all_log_evi.append(-math.log(evidence))
-    std_err = np.std(log_evidences)/math.sqrt(len(log_evidences))
-    plt.errorbar(int(res.split('/')[0][-2:]), np.mean(log_evidences),
-                yerr=std_err, fmt='o')
-
-#plt.yticks(np.arange(int(min(all_log_evi)-5),int(max(all_log_evi))+5,2))
-# plt.grid(axis='y')
-plt.savefig(f"trial_{h_params['trial_name']}_evidence.png")
