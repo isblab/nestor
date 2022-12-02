@@ -111,9 +111,27 @@ def concatenate_evidences(resolutions):
     return c_ev_files
 
 
+def get_process_time(resolution_dir):
+    run_dirs = glob.glob(os.path.join(resolution_dir,'run*'))
+    times = []
+    for run in run_dirs:
+        run_log_file = os.path.join(run,'run.log')
+        try:
+            with open(run_log_file,'r') as rlf:
+                for ln in rlf.readlines():
+                    if ln.startswith('Nestor process time:'):
+                        times.append(float(ln.strip().split(': ')[-1].split(' ')[0]))
+        except FileNotFoundError:
+            print('Found a directory with no log file')
+
+    return times
+
+
 def plot_evidence_w_stderr(h_params):
     files = concatenate_evidences(h_params['resolutions'])
     all_log_evi = []
+    output = {}
+
     for res in files:
         evidences = []
         log_evidences = []
@@ -127,6 +145,17 @@ def plot_evidence_w_stderr(h_params):
         std_err = np.std(log_evidences)/math.sqrt(len(log_evidences))
         plt.errorbar(int(res.split('/')[0][-2:]), np.mean(log_evidences),
                     yerr=std_err, fmt='o')
+
+        process_times = get_process_time(res.split('/')[-2])
+        if 'nestOR_output.log' in os.listdir(h_params['parent_dir']):
+            with open('nestOR_output.log','r') as outl:
+                output = yaml.safe_load(outl)
+
+        output[f"Resolution {res.split('/')[0][-2:]}"] = {'Mean log evidence':float(np.mean(log_evidences)),
+                                                            'Standard error on log evidence':float(std_err),
+                                                            'Time taken':float(np.mean(process_times))}
+        with open('nestOR_output.log','w') as outl:
+            output = yaml.dump(output, outl, default_flow_style = False)
 
     #plt.yticks(np.arange(int(min(all_log_evi)-5),int(max(all_log_evi))+5,2))
     # plt.grid(axis='y')
