@@ -5,6 +5,7 @@ import math
 import shutil
 import subprocess
 import numpy as np
+from mergedeep import merge
 from ast import literal_eval
 from matplotlib import pyplot as plt
 
@@ -23,6 +24,15 @@ with open(h_param_file, "r") as paramf:
 
 max_allowed_runs = h_params["max_usable_threads"] // h_params["num_cores"]
 parent_path = h_params["parent_dir"]
+
+target_runs = str(h_params["num_runs"])
+if "-" not in target_runs:
+    target_runs = range(0, int(target_runs))
+else:
+    target_runs = range(
+        int(target_runs.split("-")[0]), int(target_runs.split("-")[1]) + 1
+    )
+
 imp_path = " "
 if "imp_path" in h_params.keys():
     imp_path = h_params["imp_path"]
@@ -37,7 +47,7 @@ def get_all_toruns(h_params):
     parent_dir = h_params["parent_dir"]
     runs = []
     for res in h_params["resolutions"]:
-        for run in range(h_params["num_runs"]):
+        for run in target_runs:
             run_deets = (os.path.join(parent_dir, f"res_{res}"), str(run))
             runs.append(run_deets)
     return runs
@@ -52,7 +62,8 @@ def communicate_finished_proc_and_get_remaining_procs(processes, lastcall=False)
         if not lastcall:
             if proc.poll() is not None:
                 proc.wait()
-                terminated_runs.append(run_deets)
+                if run_deets not in terminated_runs:
+                    terminated_runs.append(run_deets)
         else:
             proc.wait()
             terminated_runs.append(run_deets)
@@ -64,6 +75,7 @@ def communicate_finished_proc_and_get_remaining_procs(processes, lastcall=False)
             successful_runs.append((run_deets, proc))
 
     for run in terminated_runs:
+        print(f"Terminated: {run[0].split('/')[-1]}, run_{run[1]}")
         processes.pop(run)
 
     return processes, faulty_runs, successful_runs
@@ -114,102 +126,112 @@ def plotter(results: dict):
 ###################### Main #######################
 ###################################################
 
-if not "skip_calc" in sys.argv:
-    all_runs = get_all_toruns(h_params)
-    torun = [run for run in all_runs]
-    results = {}
+if "skip_calc" in sys.argv:
+    with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as outf:
+        results = yaml.safe_load(outf)
+        plotter(results)
+        exit()
 
-    processes = {}
-    completed_runs = []
-    while len(torun) > 0:
-        curr_iter_torun = [run for run in torun]
-        for res, run_id in curr_iter_torun:
-            if len(processes) < max_allowed_runs:
-                if not os.path.isdir(res):
-                    os.mkdir(res)
+torun = get_all_toruns(h_params)
+results = {}
 
-                os.chdir(res)
-                os.mkdir(f"run_{run_id}")
-                os.chdir(f"run_{run_id}")
+processes = {}
+completed_runs = []
+while len(torun) > 0:
+    curr_iter_torun = [run for run in torun]
+    for res, run_id in curr_iter_torun:
+        if len(processes) < max_allowed_runs:
+            if not os.path.isdir(res):
+                os.mkdir(res)
 
-                if topology:
-                    topf = f"topology{res.split('/')[-1].split('_')[-1]}.txt"
-                else:
-                    topf = res.split("/")[-1].split("_")[-1]
+            os.chdir(res)
+            os.mkdir(f"run_{run_id}")
+            os.chdir(f"run_{run_id}")
 
-                run_cmd = [
-                    "mpirun",
-                    "-n",
-                    str(h_params["num_cores"]),
-                    h_params["imp_path"],
-                    "python",
-                    h_params["modeling_script_path"],
-                    str(run_id),
-                    topf,
-                    h_param_file,
-                ]
-
-                p = subprocess.Popen(
-                    run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-                )
-                processes[(res, run_id)] = p
-                torun.remove((res, run_id))
-                print(f"Launched: {res.split('/')[-1]}, run_{run_id}")
-
+            if topology:
+                topf = f"topology{res.split('/')[-1].split('_')[-1]}.txt"
             else:
-                print("\nWaiting for free threads...\n")
+                topf = res.split("/")[-1].split("_")[-1]
 
-        waiting = True
-        while waiting:
-            for _, p in processes.items():
-                if p.poll() is not None:
-                    waiting = False
+            run_cmd = [
+                "mpirun",
+                "-n",
+                str(h_params["num_cores"]),
+                h_params["imp_path"],
+                "python",
+                h_params["modeling_script_path"],
+                str(run_id),
+                topf,
+                h_param_file,
+            ]
 
-        (
-            processes,
-            faulty_runs,
-            successful_runs,
-        ) = communicate_finished_proc_and_get_remaining_procs(processes)
+            p = subprocess.Popen(
+                run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            processes[(res, run_id)] = p
+            torun.remove((res, run_id))
+            print(f"Launched: {res.split('/')[-1]}, run_{run_id}")
 
-        for proc in successful_runs:
-            completed_runs.append(proc)
-        if len(processes) == 0:
-            break
+        else:
+            print("\nWaiting for free threads...\n")
 
-        if len(faulty_runs) != 0:
-            for fr in faulty_runs:
-                print(f"Will relaunch ({fr[0].split('/')[-1]}, run_{fr[1]})")
-                torun.append(fr)
+    waiting = True
+    while waiting:
+        for _, p in processes.items():
+            if p.poll() is not None:
+                waiting = False
 
-    print("Waiting for the running processes to terminate...")
     (
         processes,
         faulty_runs,
         successful_runs,
-    ) = communicate_finished_proc_and_get_remaining_procs(processes, lastcall=True)
+    ) = communicate_finished_proc_and_get_remaining_procs(processes)
 
-    print("Performing housekeeping tasks")
     for proc in successful_runs:
         completed_runs.append(proc)
+    if len(processes) == 0:
+        break
 
-    for proc in completed_runs:
-        run_deets, p = proc
-        out, _ = p.communicate()
-
-        result = literal_eval(out[4:])
-
-        if run_deets[0].split("/")[-1] not in results.keys():
-            results[f"{run_deets[0].split('/')[-1]}"] = {f"run_{run_deets[1]}": result}
-        else:
-            results[f"{run_deets[0].split('/')[-1]}"][f"run_{run_deets[1]}"] = result
-
-    with open(f"{parent_path}/nestor_output.yaml", "a") as outf:
-        yaml.dump(results, outf)
+    if len(faulty_runs) != 0:
+        for fr in faulty_runs:
+            print(f"Will relaunch ({fr[0].split('/')[-1]}, run_{fr[1]})")
+            torun.append(fr)
 
 
-else:
-    with open(sys.argv[-1], "r") as outf:
-        results = yaml.safe_load(outf)
-        print(results)
+print(f"Waiting for {len(processes.keys())} processes to terminate...")
+(
+    processes,
+    faulty_runs,
+    successful_runs,
+) = communicate_finished_proc_and_get_remaining_procs(processes, lastcall=True)
+
+
+###################################################
+############## Preparing the output ###############
+###################################################
+
+print("Performing housekeeping tasks")
+for proc in successful_runs:
+    completed_runs.append(proc)
+
+for proc in completed_runs:
+    run_deets, p = proc
+    out, _ = p.communicate()
+
+    result = literal_eval(out[4:])
+    print(run_deets, result)
+
+    if run_deets[0].split("/")[-1] not in results.keys():
+        results[f"{run_deets[0].split('/')[-1]}"] = {f"run_{run_deets[1]}": result}
+    else:
+        results[f"{run_deets[0].split('/')[-1]}"][f"run_{run_deets[1]}"] = result
+
+if "nestor_output.yaml" in os.listdir(parent_path):
+    with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as inf:
+        old_results = yaml.safe_load(inf)
+        merge(results, old_results)
+
+with open(f"{parent_path}/nestor_output.yaml", "w") as outf:
+    yaml.dump(results, outf)
 
 plotter(results)
