@@ -14,10 +14,10 @@ from matplotlib import pyplot as plt
 ###################################################
 
 h_param_file = sys.argv[1]
-topology = False
+topology = True
 
-if "topology" in sys.argv:
-    topology = True
+if "manual" in sys.argv:
+    topology = False
 
 with open(h_param_file, "r") as paramf:
     h_params = yaml.safe_load(paramf)  # type: ignore
@@ -29,9 +29,7 @@ target_runs = str(h_params["num_runs"])
 if "-" not in target_runs:
     target_runs = range(0, int(target_runs))
 else:
-    target_runs = range(
-        int(target_runs.split("-")[0]), int(target_runs.split("-")[1]) + 1
-    )
+    target_runs = range(int(target_runs.split("-")[0]), int(target_runs.split("-")[1]))
 
 imp_path = " "
 if "imp_path" in h_params.keys():
@@ -53,20 +51,16 @@ def get_all_toruns(h_params):
     return runs
 
 
-def communicate_finished_proc_and_get_remaining_procs(processes, lastcall=False):
+def communicate_finished_proc_and_get_remaining_procs(processes):
     faulty_runs = []
     successful_runs = []
     terminated_runs = []
 
     for run_deets, proc in processes.items():
-        if not lastcall:
-            if proc.poll() is not None:
-                proc.wait()
-                if run_deets not in terminated_runs:
-                    terminated_runs.append(run_deets)
-        else:
+        if proc.poll() is not None:
             proc.wait()
-            terminated_runs.append(run_deets)
+            if run_deets not in terminated_runs:
+                terminated_runs.append(run_deets)
 
         if proc.returncode == 11:
             faulty_runs.append(run_deets)
@@ -199,11 +193,22 @@ while len(torun) > 0:
 
 
 print(f"Waiting for {len(processes.keys())} processes to terminate...")
-(
-    processes,
-    faulty_runs,
-    successful_runs,
-) = communicate_finished_proc_and_get_remaining_procs(processes, lastcall=True)
+
+while len(processes) > 0:
+    final_waiting = True
+    while final_waiting:
+        for _, p in processes.items():
+            if p.poll() is not None:
+                final_waiting = False
+
+    (
+        processes,
+        faulty_runs,
+        successful_runs,
+    ) = communicate_finished_proc_and_get_remaining_procs(processes)
+
+    for proc in successful_runs:
+        completed_runs.append(proc)
 
 
 ###################################################
@@ -211,15 +216,12 @@ print(f"Waiting for {len(processes.keys())} processes to terminate...")
 ###################################################
 
 print("Performing housekeeping tasks")
-for proc in successful_runs:
-    completed_runs.append(proc)
 
 for proc in completed_runs:
     run_deets, p = proc
     out, _ = p.communicate()
 
     result = literal_eval(out[4:])
-    print(run_deets, result)
 
     if run_deets[0].split("/")[-1] not in results.keys():
         results[f"{run_deets[0].split('/')[-1]}"] = {f"run_{run_deets[1]}": result}
@@ -235,3 +237,4 @@ with open(f"{parent_path}/nestor_output.yaml", "w") as outf:
     yaml.dump(results, outf)
 
 plotter(results)
+print("Done...!\n\n")
