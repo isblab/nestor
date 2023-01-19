@@ -72,11 +72,6 @@ def communicate_finished_proc_and_get_remaining_procs(processes):
         print(f"Terminated: {run[0].split('/')[-1]}, run_{run[1]}")
         processes.pop(run)
 
-    for deets, p in successful_runs:
-        with open(os.path.join(deets, "nestor_result.yaml"), "w") as result_file:
-            result = p.stdout.read()
-            yaml.dump(result, result_file)
-
     return processes, faulty_runs, successful_runs
 
 
