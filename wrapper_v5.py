@@ -51,7 +51,7 @@ def get_all_toruns(h_params):
     return runs
 
 
-def communicate_finished_proc_and_get_remaining_procs(processes):
+def communicate_finished_proc_and_get_remaining_procs(processes: dict):
     faulty_runs = []
     successful_runs = []
     terminated_runs = []
@@ -120,7 +120,7 @@ def plotter(results: dict):
 ###################### Main #######################
 ###################################################
 
-if "skip_calc" in sys.argv:
+if "skip_sampling" in sys.argv:  # Skip sampling. Take results and plot.
     with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as outf:
         results = yaml.safe_load(outf)
         plotter(results)

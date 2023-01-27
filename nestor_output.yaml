@@ -1,0 +1,306 @@
+res_01:
+  run_0:
+    analytical_uncertainty: 0.5192804549729358
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 144
+    log_estimated_evidence: -94.0478293153384
+    nestor_process_time: 11104.817190408707
+    obtained_information: 2.696521909168993
+    plateau_hits: 4
+    termination_mode: MaxFailedIterations
+  run_1:
+    analytical_uncertainty: 0.6827502592608845
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 220
+    log_estimated_evidence: -93.88225785132533
+    nestor_process_time: 16363.85569024086
+    obtained_information: 4.66147916520805
+    plateau_hits: 2
+    termination_mode: MaxFailedIterations
+  run_2:
+    analytical_uncertainty: 0.8260726456346118
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 270
+    log_estimated_evidence: -90.2816701216699
+    nestor_process_time: 20792.12568283081
+    obtained_information: 6.82396015865767
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+  run_3:
+    analytical_uncertainty: 1.0455638678293184
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 282
+    log_estimated_evidence: -86.98160977032298
+    nestor_process_time: 20447.85692715645
+    obtained_information: 10.932038017102045
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+  run_4:
+    analytical_uncertainty: 0.8538583461635976
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 357
+    log_estimated_evidence: -82.8002964677925
+    nestor_process_time: 25002.93524622917
+    obtained_information: 7.29074075313234
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+res_05:
+  run_0:
+    analytical_uncertainty: 1.1031493740491447
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 543
+    log_estimated_evidence: -73.49448539524262
+    nestor_process_time: 5872.362534761429
+    obtained_information: 12.1693854146502
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+  run_1:
+    analytical_uncertainty: 1.1482909418728138
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 772
+    log_estimated_evidence: -72.86479063759107
+    nestor_process_time: 7838.901412725449
+    obtained_information: 13.185720871871538
+    plateau_hits: 1
+    termination_mode: MaxFailedIterations
+  run_2:
+    analytical_uncertainty: 1.0732571083689215
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 485
+    log_estimated_evidence: -71.10385956714859
+    nestor_process_time: 5296.971222639084
+    obtained_information: 11.518808206644188
+    plateau_hits: 2
+    termination_mode: MaxFailedIterations
+  run_3:
+    analytical_uncertainty: 1.0115088495273716
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 234
+    log_estimated_evidence: -69.9199010981602
+    nestor_process_time: 3058.012565135956
+    obtained_information: 10.231501526721871
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+  run_4:
+    analytical_uncertainty: 0.7204285112785965
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 108
+    log_estimated_evidence: -79.84555677376471
+    nestor_process_time: 1789.5876786708832
+    obtained_information: 5.190172398630949
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+res_10:
+  run_0:
+    analytical_uncertainty: 1.0764924009405676
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 510
+    log_estimated_evidence: -68.96544723342228
+    nestor_process_time: 3415.9925100803375
+    obtained_information: 11.588358892827877
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+  run_1:
+    analytical_uncertainty: 0.9778410467306665
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 385
+    log_estimated_evidence: -63.500085666690616
+    nestor_process_time: 2818.579632997513
+    obtained_information: 9.561731126713255
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+  run_2:
+    analytical_uncertainty: 0.925475852571621
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 256
+    log_estimated_evidence: -67.31397302395065
+    nestor_process_time: 2137.800228357315
+    obtained_information: 8.565055536931688
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+  run_3:
+    analytical_uncertainty: 0.8530365994423554
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 192
+    log_estimated_evidence: -67.38265592047088
+    nestor_process_time: 1748.3581280708313
+    obtained_information: 7.276714399881776
+    plateau_hits: 1
+    termination_mode: MaxFailedIterations
+  run_4:
+    analytical_uncertainty: 1.1699047029180567
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 589
+    log_estimated_evidence: -65.4499124185848
+    nestor_process_time: 3812.685802936554
+    obtained_information: 13.686770139097867
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+res_20:
+  run_0:
+    analytical_uncertainty: 0.9894958903986008
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 275
+    log_estimated_evidence: -64.12574897485075
+    nestor_process_time: 1613.4956095218658
+    obtained_information: 9.791021171157198
+    plateau_hits: 1
+    termination_mode: MaxFailedIterations
+  run_1:
+    analytical_uncertainty: 0.8679355724795396
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 154
+    log_estimated_evidence: -62.52145413909303
+    nestor_process_time: 930.7247178554535
+    obtained_information: 7.53312157975386
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+  run_2:
+    analytical_uncertainty: 0.8228405263520395
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 197
+    log_estimated_evidence: -65.42060390772211
+    nestor_process_time: 1169.7209072113037
+    obtained_information: 6.770665318073014
+    plateau_hits: 2
+    termination_mode: MaxFailedIterations
+  run_3:
+    analytical_uncertainty: 1.0480430025781529
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 570
+    log_estimated_evidence: -65.73424900951227
+    nestor_process_time: 2692.451084136963
+    obtained_information: 10.983941352530302
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+  run_4:
+    analytical_uncertainty: 1.152850443876527
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 447
+    log_estimated_evidence: -65.07951103710337
+    nestor_process_time: 2274.7522053718567
+    obtained_information: 13.290641459463053
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+res_30:
+  run_0:
+    analytical_uncertainty: 1.0787632903557598
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 296
+    log_estimated_evidence: -62.75680032692504
+    nestor_process_time: 1368.9935729503632
+    obtained_information: 11.637302366191854
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+  run_1:
+    analytical_uncertainty: 1.1687021919575749
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 372
+    log_estimated_evidence: -65.98220197539666
+    nestor_process_time: 1740.3742845058441
+    obtained_information: 13.6586481348644
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+  run_2:
+    analytical_uncertainty: 0.9925306774867387
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 400
+    log_estimated_evidence: -62.02996386448219
+    nestor_process_time: 1844.247210264206
+    obtained_information: 9.851171457522845
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+  run_3:
+    analytical_uncertainty: 0.9193241464579827
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 419
+    log_estimated_evidence: -63.831183127391114
+    nestor_process_time: 1898.108031988144
+    obtained_information: 8.451568862606983
+    plateau_hits: 1
+    termination_mode: MaxFailedIterations
+  run_4:
+    analytical_uncertainty: 1.0948570261328068
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 508
+    log_estimated_evidence: -62.52005238292764
+    nestor_process_time: 2101.0219144821167
+    obtained_information: 11.987119076723737
+    plateau_hits: 1
+    termination_mode: MaxFailedIterations
+res_50:
+  run_0:
+    analytical_uncertainty: 0.9271125581060297
+    exit_code: 0
+    failed_iter: 0
+    last_iter: 263
+    log_estimated_evidence: -61.6313242124808
+    nestor_process_time: 960.4813578128815
+    obtained_information: 8.595376953979063
+    plateau_hits: 10
+    termination_mode: MaxPlateauHits
+  run_1:
+    analytical_uncertainty: 0.993057783811141
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 520
+    log_estimated_evidence: -59.29890621670035
+    nestor_process_time: 1920.959887266159
+    obtained_information: 9.861637619878948
+    plateau_hits: 0
+    termination_mode: MaxFailedIterations
+  run_2:
+    analytical_uncertainty: 0.9328425676659169
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 372
+    log_estimated_evidence: -59.69930598994521
+    nestor_process_time: 1388.0723450183868
+    obtained_information: 8.701952560495407
+    plateau_hits: 6
+    termination_mode: MaxFailedIterations
+  run_3:
+    analytical_uncertainty: 1.111281771918952
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 471
+    log_estimated_evidence: -62.826410678178505
+    nestor_process_time: 1723.7662813663483
+    obtained_information: 12.349471765993258
+    plateau_hits: 2
+    termination_mode: MaxFailedIterations
+  run_4:
+    analytical_uncertainty: 0.9543624982021853
+    exit_code: 0
+    failed_iter: 50
+    last_iter: 370
+    log_estimated_evidence: -59.70306253158607
+    nestor_process_time: 1396.691534280777
+    obtained_information: 9.108077779747163
+    plateau_hits: 5
+    termination_mode: MaxFailedIterations

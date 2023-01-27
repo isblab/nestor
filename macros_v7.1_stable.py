@@ -691,7 +691,7 @@ class NestedSampling:
 
     def sample_initial_frames(self, test_run=False):
         if test_run:
-            self.rex_macro.vars["number_of_frames"] = 2
+            self.rex_macro.vars["number_of_frames"] = 20
         else:
             self.rex_macro.vars["number_of_frames"] = self.num_init_frames
         self.rex_macro.execute_macro()
@@ -753,7 +753,9 @@ class NestedSampling:
             print(f"Estimated evidence: sampled={self.Z}")
             self.exit_code = 0
             try:
-                ana_unc = math.sqrt(self.H / self.num_init_frames)
+                ana_unc = math.sqrt(
+                    self.H / self.num_init_frames
+                )  # When the nestor terminates after very few iter is too small, analytical uncertainty is negative
             except ValueError:
                 ana_unc = 0
                 print("Math domain error")
@@ -804,7 +806,6 @@ class NestedSampling:
             self.H = first_term + second_term - math.log(curr_zi)
 
     def execute_nested_sampling2(self):
-        self.tic = time.time()
         i = 0
         true_iter = 0
         base_process = self.comm_obj.Get_rank() == 0
@@ -818,8 +819,8 @@ class NestedSampling:
         # self.exit_code = self.comm_obj.bcast(
         #     self.exit_code, root=self.comm_obj.Get_rank()
         # )
-        if "shuffle_config.err" in os.listdir('./'):
-            self.exit_code=11
+        if "shuffle_config.err" in os.listdir("./"):
+            self.exit_code = 11
 
         self.comm_obj.Barrier()
 
@@ -835,6 +836,7 @@ class NestedSampling:
 
             self.sample_initial_frames(test_run=True)
             self.comm_obj.Barrier()
+            self.tic = time.time()
 
             if base_process:
                 nan_test_likelihoods = self.parse_likelihoods(iteration="test")
