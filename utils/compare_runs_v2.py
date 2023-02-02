@@ -19,30 +19,28 @@ def get_all_results(all_runs: list) -> dict:
     return nestor_results
 
 
-def plot_nestor_process_times(results: dict):
-    #! Plots mean process time comparison
-    plt.figure(1)
+def mean_type_plotter(results: dict, figid: int, key: str, ylabel: str):
+    #! Plots the mean values for the key
+    plt.figure(figid)
     for parent in results:  # parent is a trial set (init_x or x_fpi)
         x_vals = []
         y_vals = []
         for run_set in results[parent]:  # runset is res_01
-            total_time = []
+            all_vals = []
             for run in results[parent][run_set]:
-                total_time.append(
-                    float(results[parent][run_set][run]["nestor_process_time"])
-                )
+                all_vals.append(float(results[parent][run_set][run][key]))
             x_vals.append(run_set)
-            y_vals.append(np.mean(total_time))
+            y_vals.append(np.mean(all_vals))
         plt.scatter(x_vals, y_vals, label=parent, color=f"C{sys.argv.index(parent)-1}")
     plt.legend()
     plt.xlabel(xlabel)
-    plt.ylabel("Nestor process time")
-    plt.savefig(f"Process time comparison.png")
+    plt.ylabel(ylabel)
+    plt.savefig(f"{ylabel}_comparison.png")
 
 
-def plot_sterr_log_evi(results: dict):
+def plot_sterr_log_evi(results: dict, figid: int):
     #! Plots mean log evidence with sterr comparison
-    plt.figure(2)
+    plt.figure(figid)
     done_runs = []
     for parent in results:  # parent is a trial set (init_x or x_fpi)
         for run_set in results[parent]:  # runset is res_01
@@ -79,9 +77,9 @@ def plot_sterr_log_evi(results: dict):
     plt.savefig(f"Mean log evidence comparison with sterr.png")
 
 
-def plot_sterr(results: dict):
+def plot_sterr(results: dict, figid: int):
     #! Plots standard error comparison
-    plt.figure(3)
+    plt.figure(figid)
     for parent in results:  # parent is a trial set (init_x or x_fpi)
         x_vals = []
         y_vals = []
@@ -102,29 +100,25 @@ def plot_sterr(results: dict):
     plt.savefig(f"Standard error comparison.png")
 
 
-def plot_analytical_uncertainty(results: dict):
-    #! Plots analytical uncertainty comparison
-    plt.figure(4)
-    for parent in results:  # parent is a trial set (init_x or x_fpi)
-        x_vals = []
-        y_vals = []
-        for run_set in results[parent]:  # runset is res_01
-            ana_unc = []
-            for run in results[parent][run_set]:
-                ana_unc.append(
-                    float(results[parent][run_set][run]["analytical_uncertainty"])
-                )
-            x_vals.append(run_set)
-            y_vals.append(np.mean(ana_unc))
-        plt.scatter(x_vals, y_vals, label=parent, color=f"C{sys.argv.index(parent)-1}")
-    plt.legend()
-    plt.xlabel(xlabel)
-    plt.ylabel("Analytical uncertainty")
-    plt.savefig(f"Analytical uncertainty comparison.png")
-
-
 nestor_results = get_all_results(runs_to_compare)
-plot_nestor_process_times(nestor_results)
-plot_sterr_log_evi(nestor_results)
-plot_sterr(nestor_results)
-plot_analytical_uncertainty(nestor_results)
+figid = 0
+
+figid += 1
+plot_sterr_log_evi(nestor_results, figid=figid)
+figid += 1
+plot_sterr(nestor_results, figid=figid)
+
+toPlot_meanType: dict[str:str] = {
+    "nestor_process_time": "Mean NestOR process time",
+    "last_iter": "Mean terations",
+    "analytical_uncertainty": "Mean analytical uncertainties",
+}
+
+for key, y_lbl in toPlot_meanType.items():
+    figid += 1
+    mean_type_plotter(
+        nestor_results,
+        figid=figid,
+        key=key,
+        ylabel=y_lbl,
+    )
