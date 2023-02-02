@@ -38,24 +38,21 @@ def mean_type_plotter(results: dict, figid: int, key: str, ylabel: str):
     plt.savefig(f"{ylabel}_comparison.png")
 
 
-def plot_sterr_log_evi(results: dict, figid: int):
-    #! Plots mean log evidence with sterr comparison
+def errorbar_type_plotter(results: dict, figid: int, key: str, ylabel: str):
     plt.figure(figid)
     done_runs = []
     for parent in results:  # parent is a trial set (init_x or x_fpi)
         for run_set in results[parent]:  # runset is res_01
-            log_evi = []
+            all_vals = []
             for run in results[parent][run_set]:
-                log_evi.append(
-                    float(results[parent][run_set][run]["log_estimated_evidence"])
-                )
-            mean_log_evi = np.mean(log_evi)
-            stderr_log_evi = np.std(log_evi) / (math.sqrt(len(log_evi)))
+                all_vals.append(float(results[parent][run_set][run][key]))
+            mean_all_vals = np.mean(all_vals)
+            stderr_all_vals = np.std(all_vals) / (math.sqrt(len(all_vals)))
             if parent not in done_runs:
                 plt.errorbar(
                     run_set,
-                    mean_log_evi,
-                    yerr=stderr_log_evi,
+                    mean_all_vals,
+                    yerr=stderr_all_vals,
                     fmt="o",
                     color=f"C{sys.argv.index(parent)-1}",
                     label=parent,
@@ -65,16 +62,16 @@ def plot_sterr_log_evi(results: dict, figid: int):
             else:
                 plt.errorbar(
                     run_set,
-                    mean_log_evi,
-                    yerr=stderr_log_evi,
+                    mean_all_vals,
+                    yerr=stderr_all_vals,
                     fmt="o",
                     color=f"C{sys.argv.index(parent)-1}",
                 )
 
     plt.legend()
     plt.xlabel(xlabel)
-    plt.ylabel("Mean log(evidence) with standard error")
-    plt.savefig(f"Mean log evidence comparison with sterr.png")
+    plt.ylabel(ylabel)
+    plt.savefig(f"{ylabel}_comparison.png")
 
 
 def plot_sterr(results: dict, figid: int):
@@ -100,12 +97,13 @@ def plot_sterr(results: dict, figid: int):
     plt.savefig(f"Standard error comparison.png")
 
 
-nestor_results = get_all_results(runs_to_compare)
-figid = 0
+# --------------------------------------------------------------------------------------------------
+# ---------------------------------------------- Main ----------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
-figid += 1
-plot_sterr_log_evi(nestor_results, figid=figid)
-figid += 1
+nestor_results = get_all_results(runs_to_compare)
+
+figid = 1
 plot_sterr(nestor_results, figid=figid)
 
 toPlot_meanType: dict[str:str] = {
@@ -114,9 +112,24 @@ toPlot_meanType: dict[str:str] = {
     "analytical_uncertainty": "Mean analytical uncertainties",
 }
 
+toPlot_errorbarType: dict[str:str] = {
+    "last_iter": "Mean terations",
+    "log_estimated_evidence": "Mean log(Z)",
+}
+
+
 for key, y_lbl in toPlot_meanType.items():
     figid += 1
     mean_type_plotter(
+        nestor_results,
+        figid=figid,
+        key=key,
+        ylabel=y_lbl,
+    )
+
+for key, y_lbl in toPlot_errorbarType.items():
+    figid += 1
+    errorbar_type_plotter(
         nestor_results,
         figid=figid,
         key=key,
