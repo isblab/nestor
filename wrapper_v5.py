@@ -59,8 +59,7 @@ def communicate_finished_proc_and_get_remaining_procs(processes: dict):
     for run_deets, proc in processes.items():
         if proc.poll() is not None:
             proc.wait()
-            if run_deets not in terminated_runs:
-                terminated_runs.append(run_deets)
+            terminated_runs.append(run_deets)
 
         if proc.returncode == 11:
             faulty_runs.append(run_deets)
@@ -69,7 +68,9 @@ def communicate_finished_proc_and_get_remaining_procs(processes: dict):
             successful_runs.append((run_deets, proc))
 
     for run in terminated_runs:
-        print(f"Terminated: {run[0].split('/')[-1]}, run_{run[1]}")
+        print(
+            f"Terminated: {run[0].split('/')[-1]}, run_{run[1]} with exit code: {processes[run].returncode}"
+        )
         processes.pop(run)
 
     return processes, faulty_runs, successful_runs
@@ -120,7 +121,7 @@ def plotter(results: dict):
 ###################### Main #######################
 ###################################################
 
-if "skip_sampling" in sys.argv:  # Skip sampling. Take results and plot.
+if "skip_calc" in sys.argv:
     with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as outf:
         results = yaml.safe_load(outf)
         plotter(results)
@@ -129,45 +130,49 @@ if "skip_sampling" in sys.argv:  # Skip sampling. Take results and plot.
 torun = get_all_toruns(h_params)
 results = {}
 
-processes = {}
+processes = {"Dummy": "Dummy"}
 completed_runs = []
-while len(torun) > 0:
-    curr_iter_torun = [run for run in torun]
-    for res, run_id in curr_iter_torun:
-        if len(processes) < max_allowed_runs:
-            if not os.path.isdir(res):
-                os.mkdir(res)
+while len(list(processes.keys())) > 0:
+    if "Dummy" in processes.keys():
+        processes.pop("Dummy")
 
-            os.chdir(res)
-            os.mkdir(f"run_{run_id}")
-            os.chdir(f"run_{run_id}")
+    if len(torun) > 0:
+        curr_iter_torun = [run for run in torun]
+        for res, run_id in curr_iter_torun:
+            if len(processes) < max_allowed_runs:
+                if not os.path.isdir(res):
+                    os.mkdir(res)
 
-            if topology:
-                topf = f"topology{res.split('/')[-1].split('_')[-1]}.txt"
+                os.chdir(res)
+                os.mkdir(f"run_{run_id}")
+                os.chdir(f"run_{run_id}")
+
+                if topology:
+                    topf = f"topology{res.split('/')[-1].split('_')[-1]}.txt"
+                else:
+                    topf = res.split("/")[-1].split("_")[-1]
+
+                run_cmd = [
+                    "mpirun",
+                    "-n",
+                    str(h_params["num_cores"]),
+                    h_params["imp_path"],
+                    "python",
+                    h_params["modeling_script_path"],
+                    str(run_id),
+                    topf,
+                    h_param_file,
+                ]
+
+                p = subprocess.Popen(
+                    run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                )
+                processes[(res, run_id)] = p
+                torun.remove((res, run_id))
+                print(f"Launched: {res.split('/')[-1]}, run_{run_id}")
+
             else:
-                topf = res.split("/")[-1].split("_")[-1]
-
-            run_cmd = [
-                "mpirun",
-                "-n",
-                str(h_params["num_cores"]),
-                h_params["imp_path"],
-                "python",
-                h_params["modeling_script_path"],
-                str(run_id),
-                topf,
-                h_param_file,
-            ]
-
-            p = subprocess.Popen(
-                run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-            )
-            processes[(res, run_id)] = p
-            torun.remove((res, run_id))
-            print(f"Launched: {res.split('/')[-1]}, run_{run_id}")
-
-        else:
-            print("\nWaiting for free threads...\n")
+                print("\nWaiting for free threads...\n")
 
     waiting = True
     while waiting:
