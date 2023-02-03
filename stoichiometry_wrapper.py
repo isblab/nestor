@@ -14,8 +14,8 @@ from matplotlib import pyplot as plt
 ###################################################
 
 h_param_file = sys.argv[1]
-topology = True
 
+topology = True
 if "manual" in sys.argv:
     topology = False
 
@@ -41,17 +41,17 @@ if "imp_path" in h_params.keys():
 ###################################################
 
 
-def get_all_toruns(h_params):
+def get_all_toruns(h_params) -> list[str]:
     parent_dir = h_params["parent_dir"]
     runs = []
-    for res in h_params["resolutions"]:
+    for stoichiometry in h_params["stoichiometries"]:
         for run in target_runs:
-            run_deets = (os.path.join(parent_dir, f"res_{res}"), str(run))
+            run_deets = (os.path.join(parent_dir, f"{stoichiometry}"), str(run))
             runs.append(run_deets)
     return runs
 
 
-def communicate_finished_proc_and_get_remaining_procs(processes: dict):
+def communicate_finished_proc_and_get_remaining_procs(processes):
     faulty_runs = []
     successful_runs = []
     terminated_runs = []
@@ -64,15 +64,15 @@ def communicate_finished_proc_and_get_remaining_procs(processes: dict):
         if proc.returncode == 11:
             faulty_runs.append(run_deets)
             shutil.rmtree(os.path.join(run_deets[0], f"run_{run_deets[1]}"))
-        elif proc.returncode == 0:
+        elif proc.returncode == 0 or proc.returncode == 13:
             successful_runs.append((run_deets, proc))
 
     for run in terminated_runs:
         print(
             f"Terminated: {run[0].split('/')[-1]}, run_{run[1]} with exit code: {processes[run].returncode}"
         )
-        if processes[run].returncode != 0:
-            print(f"Error:\n{processes[run].stderr.read()}")
+        if processes[run].returncode != 0 and processes[run].returncode != 11:
+            print(f"The error was:\n{processes[run].stdout.read().split('\n')[-1]}")
 
         processes.pop(run)
 
@@ -82,27 +82,27 @@ def communicate_finished_proc_and_get_remaining_procs(processes: dict):
 def plotter(results: dict):
     all_log_z = {}
     mean_proc_time = []
-    resolutions = []
+    stoichiometries = []
 
     plt.figure(1)
-    for resolution in results:
-        if not resolution[4:] in resolutions:
-            resolutions.append(int(resolution[4:]))
+    for stoichiometry in results:
+        if not stoichiometry in stoichiometries:
+            stoichiometries.append(int(stoichiometry[0]))
 
         log_z = []
         proc_time = []
-        for _, run in results[resolution].items():
+        for _, run in results[stoichiometry].items():
             log_z.append(run["log_estimated_evidence"])
             proc_time.append(run["nestor_process_time"])
 
-        all_log_z[resolution] = log_z
+        all_log_z[stoichiometry] = log_z
         mean_proc_time.append(np.mean(proc_time))
 
         avg_logz = np.mean(log_z)
         stderr_logz = np.std(log_z) / math.sqrt(len(log_z))
-        plt.errorbar(int(resolution[4:]), avg_logz, yerr=stderr_logz, fmt="o")
+        plt.errorbar(stoichiometry, avg_logz, yerr=stderr_logz, fmt="o")
 
-    plt.xlabel("Resolutions")
+    plt.xlabel("stoichiometries")
     plt.ylabel("log(Evidence)")
     plt.savefig(
         os.path.join(
@@ -111,9 +111,9 @@ def plotter(results: dict):
     )
 
     plt.figure(2)
-    resolutions, mean_proc_time = zip(*sorted(zip(resolutions, mean_proc_time)))
-    plt.plot(resolutions, mean_proc_time, c="C2", marker="o")
-    plt.xlabel("Resolutions")
+    stoichiometries, mean_proc_time = zip(*sorted(zip(stoichiometries, mean_proc_time)))
+    plt.plot(stoichiometries, mean_proc_time, c="C2", marker="o")
+    plt.xlabel("stoichiometries")
     plt.ylabel("Nested sampling process time")
     plt.savefig(
         os.path.join(parent_path, f"trial_{h_params['trial_name']}_proctime.png")
@@ -141,19 +141,21 @@ while len(list(processes.keys())) > 0:
 
     if len(torun) > 0:
         curr_iter_torun = [run for run in torun]
-        for res, run_id in curr_iter_torun:
+        for stoichiometry, run_id in curr_iter_torun:
             if len(processes) < max_allowed_runs:
-                if not os.path.isdir(res):
-                    os.mkdir(res)
+                if not os.path.isdir(stoichiometry):
+                    os.mkdir(stoichiometry)
 
-                os.chdir(res)
+                os.chdir(stoichiometry)
                 os.mkdir(f"run_{run_id}")
                 os.chdir(f"run_{run_id}")
 
                 if topology:
-                    topf = f"topology{res.split('/')[-1].split('_')[-1]}.txt"
+                    topf = f"topology{stoichiometry.split('/')[-1]}.txt"
                 else:
-                    topf = res.split("/")[-1].split("_")[-1]
+                    raise Exception(
+                        "NestOR for stoichiometries works with topology files only"
+                    )
 
                 run_cmd = [
                     "mpirun",
@@ -170,12 +172,12 @@ while len(list(processes.keys())) > 0:
                 p = subprocess.Popen(
                     run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
                 )
-                processes[(res, run_id)] = p
-                torun.remove((res, run_id))
-                print(f"Launched: {res.split('/')[-1]}, run_{run_id}")
+                processes[(stoichiometry, run_id)] = p
+                torun.remove((stoichiometry, run_id))
+                print(f"Launched: {stoichiometry.split('/')[-1]}, run_{run_id}")
 
             else:
-                print("\nWaiting for free threads...\n")
+                print("Waiting for free threads...")
 
     waiting = True
     while waiting:
@@ -236,6 +238,7 @@ for proc in completed_runs:
     else:
         results[f"{run_deets[0].split('/')[-1]}"][f"run_{run_deets[1]}"] = result
 
+print(results)
 if "nestor_output.yaml" in os.listdir(parent_path):
     with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as inf:
         old_results = yaml.safe_load(inf)
