@@ -72,7 +72,8 @@ def communicate_finished_proc_and_get_remaining_procs(processes):
             f"Terminated: {run[0].split('/')[-1]}, run_{run[1]} with exit code: {processes[run].returncode}"
         )
         if processes[run].returncode != 0 and processes[run].returncode != 11:
-            print(f"The error was:\n{processes[run].stdout.read().split('\n')[-1]}")
+            out = "\n".join(processes[run].stdout.read().split("\n")[-10:])
+            print(f"The error was:\n{out}")
 
         processes.pop(run)
 

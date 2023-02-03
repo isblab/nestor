@@ -722,7 +722,6 @@ class NestedSampling:
                 iteration=iteration,
                 plateau_hits=self.plateau_hits,
                 failed_iter=self.failed_iter,
-                worst_likelihood=0,
             )
 
         return sampled_likelihoods
@@ -940,7 +939,6 @@ class NestedSampling:
                             iteration=true_iter,
                             plateau_hits=self.plateau_hits,
                             failed_iter=self.failed_iter,
-                            worst_likelihood=Li,
                         )
 
                 self.comm_obj.Barrier()
@@ -950,9 +948,7 @@ class NestedSampling:
                 self.termination_mode = "Error: Shuffle configuration error"
                 self.exit_code = 11
                 self.exit_code = self.comm_obj.bcast(self.exit_code, root=0)
-                self.terminator(
-                    iteration=0, plateau_hits=0, failed_iter=0, worst_likelihood=0
-                )
+                self.terminator(iteration=0, plateau_hits=0, failed_iter=0)
         self.comm_obj.Barrier()
 
         self.exit_code = self.comm_obj.bcast(self.exit_code, root=0)
