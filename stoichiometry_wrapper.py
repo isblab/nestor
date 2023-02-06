@@ -71,10 +71,6 @@ def communicate_finished_proc_and_get_remaining_procs(processes):
         print(
             f"Terminated: {run[0].split('/')[-1]}, run_{run[1]} with exit code: {processes[run].returncode}"
         )
-        if processes[run].returncode != 0 and processes[run].returncode != 11:
-            out = "\n".join(processes[run].stdout.read().split("\n")[-10:])
-            print(f"The error was:\n{out}")
-
         processes.pop(run)
 
     return processes, faulty_runs, successful_runs
@@ -202,7 +198,8 @@ while len(list(processes.keys())) > 0:
             print(f"Will relaunch ({fr[0].split('/')[-1]}, run_{fr[1]})")
             torun.append(fr)
 
-
+""" 
+#? Older code 
 print(f"Waiting for {len(processes.keys())} processes to terminate...")
 
 while len(processes) > 0:
@@ -220,7 +217,7 @@ while len(processes) > 0:
 
     for proc in successful_runs:
         completed_runs.append(proc)
-
+"""
 
 ###################################################
 ############## Preparing the output ###############
@@ -231,7 +228,6 @@ print("Performing housekeeping tasks")
 for proc in completed_runs:
     run_deets, p = proc
     out, _ = p.communicate()
-
     result = literal_eval(out[4:])
 
     if run_deets[0].split("/")[-1] not in results.keys():

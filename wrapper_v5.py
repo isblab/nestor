@@ -175,7 +175,7 @@ while len(list(processes.keys())) > 0:
                 print(f"Launched: {res.split('/')[-1]}, run_{run_id}")
 
             else:
-                print("\nWaiting for free threads...\n")
+                print("Waiting for free threads...")
 
     waiting = True
     while waiting:

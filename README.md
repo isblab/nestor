@@ -1,4 +1,4 @@
-**Dependencies:** numpy, mergedeep, mpi4py, matplotlib, pyyaml
+**Dependencies:** numpy, mergedeep, mpi4py, matplotlib, pyyaml, plotly, kaleido
 ### Exit codes:
 **Exit code 0:** Process terminated normally.  
 **Exit code 11:** Process terminated due to either a shuffle configuration error or NaN was encountered in the likelihoods. The process will be restarted automatically.  
