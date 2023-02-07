@@ -49,6 +49,7 @@ def mean_type_plotter(results: dict, figid: int, key: str, ylabel: str):
         template="simple_white",
     )
     fig.write_html(f"{ylabel}_comparison.html")
+    fig.write_image(f"{ylabel}_comparison.png")
 
 
 def errorbar_type_plotter(results: dict, figid: int, key: str, ylabel: str):
@@ -82,6 +83,7 @@ def errorbar_type_plotter(results: dict, figid: int, key: str, ylabel: str):
         template="simple_white",
     )
     fig.write_html(f"{ylabel}_comparison.html")
+    fig.write_image(f"{ylabel}_comparison.png")
 
 
 def plot_sterr(results: dict, figid: int):
@@ -113,6 +115,7 @@ def plot_sterr(results: dict, figid: int):
         template="simple_white",
     )
     fig.write_html("Standard error on log(Evidence)_comparison.html")
+    fig.write_image("Standard error on log(Evidence)_comparison.png")
 
 
 # --------------------------------------------------------------------------------------------------
