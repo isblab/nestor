@@ -51,7 +51,19 @@ def get_all_toruns(h_params) -> list[str]:
     return runs
 
 
-def communicate_finished_proc_and_get_remaining_procs(processes):
+def get_output(process, results: dict) -> dict:
+    run_deets, proc = process
+    out, _ = proc.communicate()
+    result = literal_eval(out[4:])
+    if run_deets[0].split("/")[-1] not in results.keys():
+        results[f"{run_deets[0].split('/')[-1]}"] = {f"run_{run_deets[1]}": result}
+    else:
+        results[f"{run_deets[0].split('/')[-1]}"][f"run_{run_deets[1]}"] = result
+
+    return results
+
+
+def communicate_finished_proc_and_get_remaining_procs(processes, results):
     faulty_runs = []
     successful_runs = []
     terminated_runs = []
@@ -73,7 +85,19 @@ def communicate_finished_proc_and_get_remaining_procs(processes):
         )
         processes.pop(run)
 
-    return processes, faulty_runs, successful_runs
+    for p in successful_runs:
+        results = get_output(p, results)
+
+    if "nestor_output.yaml" in os.listdir(parent_path):
+        with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as inf:
+            old_results = yaml.safe_load(inf)
+            merge(results, old_results)
+
+    with open(f"{parent_path}/nestor_output.yaml", "w") as outf:
+        yaml.dump(results, outf)
+        outf.flush()
+
+    return processes, faulty_runs, successful_runs, results
 
 
 def plotter(results: dict):
@@ -83,8 +107,9 @@ def plotter(results: dict):
 
     plt.figure(1)
     for stoichiometry in results:
+
         if not stoichiometry in stoichiometries:
-            stoichiometries.append(int(stoichiometry[0]))
+            stoichiometries.append(int(stoichiometry.split("_")[-1]))
 
         log_z = []
         proc_time = []
@@ -97,8 +122,10 @@ def plotter(results: dict):
 
         avg_logz = np.mean(log_z)
         stderr_logz = np.std(log_z) / math.sqrt(len(log_z))
-        plt.errorbar(stoichiometry, avg_logz, yerr=stderr_logz, fmt="o")
-
+        plt.errorbar(
+            int(stoichiometry.split("_")[-1]), avg_logz, yerr=stderr_logz, fmt="o"
+        )
+    print(stoichiometries)
     plt.xlabel("stoichiometries")
     plt.ylabel("log(Evidence)")
     plt.savefig(
@@ -110,7 +137,7 @@ def plotter(results: dict):
     plt.figure(2)
     stoichiometries, mean_proc_time = zip(*sorted(zip(stoichiometries, mean_proc_time)))
     plt.plot(stoichiometries, mean_proc_time, c="C2", marker="o")
-    plt.xlabel("stoichiometries")
+    plt.xlabel("Stoichiometries")
     plt.ylabel("Nested sampling process time")
     plt.savefig(
         os.path.join(parent_path, f"trial_{h_params['trial_name']}_proctime.png")
@@ -186,7 +213,8 @@ while len(list(processes.keys())) > 0:
         processes,
         faulty_runs,
         successful_runs,
-    ) = communicate_finished_proc_and_get_remaining_procs(processes)
+        results,
+    ) = communicate_finished_proc_and_get_remaining_procs(processes, results)
 
     for proc in successful_runs:
         completed_runs.append(proc)
@@ -198,51 +226,29 @@ while len(list(processes.keys())) > 0:
             print(f"Will relaunch ({fr[0].split('/')[-1]}, run_{fr[1]})")
             torun.append(fr)
 
-""" 
-#? Older code 
-print(f"Waiting for {len(processes.keys())} processes to terminate...")
-
-while len(processes) > 0:
-    final_waiting = True
-    while final_waiting:
-        for _, p in processes.items():
-            if p.poll() is not None:
-                final_waiting = False
-
-    (
-        processes,
-        faulty_runs,
-        successful_runs,
-    ) = communicate_finished_proc_and_get_remaining_procs(processes)
-
-    for proc in successful_runs:
-        completed_runs.append(proc)
-"""
 
 ###################################################
 ############## Preparing the output ###############
 ###################################################
 
-print("Performing housekeeping tasks")
 
-for proc in completed_runs:
-    run_deets, p = proc
-    out, _ = p.communicate()
-    result = literal_eval(out[4:])
+# for proc in completed_runs:
+#     run_deets, p = proc
+#     out, _ = p.communicate()
+#     result = literal_eval(out[4:])
 
-    if run_deets[0].split("/")[-1] not in results.keys():
-        results[f"{run_deets[0].split('/')[-1]}"] = {f"run_{run_deets[1]}": result}
-    else:
-        results[f"{run_deets[0].split('/')[-1]}"][f"run_{run_deets[1]}"] = result
+#     if run_deets[0].split("/")[-1] not in results.keys():
+#         results[f"{run_deets[0].split('/')[-1]}"] = {f"run_{run_deets[1]}": result}
+#     else:
+#         results[f"{run_deets[0].split('/')[-1]}"][f"run_{run_deets[1]}"] = result
 
-print(results)
-if "nestor_output.yaml" in os.listdir(parent_path):
-    with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as inf:
-        old_results = yaml.safe_load(inf)
-        merge(results, old_results)
+# if "nestor_output.yaml" in os.listdir(parent_path):
+#     with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as inf:
+#         old_results = yaml.safe_load(inf)
+#         merge(results, old_results)
 
-with open(f"{parent_path}/nestor_output.yaml", "w") as outf:
-    yaml.dump(results, outf)
+# with open(f"{parent_path}/nestor_output.yaml", "w") as outf:
+#     yaml.dump(results, outf)
 
 plotter(results)
 print("Done...!\n\n")
