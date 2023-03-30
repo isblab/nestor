@@ -107,7 +107,6 @@ def plotter(results: dict):
 
     plt.figure(1)
     for stoichiometry in results:
-
         if not stoichiometry in stoichiometries:
             stoichiometries.append(int(stoichiometry.split("_")[-1]))
 
