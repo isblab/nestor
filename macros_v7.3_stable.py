@@ -405,7 +405,6 @@ class ReplicaExchange0(object):
                 pass
 
             if self.vars["do_create_directories"]:
-
                 try:
                     os.makedirs(globaldir)
                 except:  # noqa: E722
@@ -792,7 +791,6 @@ class NestedSampling:
         self.return_vals["exit_code"] = self.exit_code
 
     def compute_evidence_H(self, iteration, curr_li):
-
         # compute Z
         curr_xi = math.exp(-iteration / self.num_init_frames)
         curr_wi = self.Xi - curr_xi
@@ -895,7 +893,6 @@ class NestedSampling:
                             candidate_li = Li
 
                         if candidate_li >= Li:
-
                             self.likelihoods.remove(Li)
 
                             if not self.finished:
@@ -933,7 +930,6 @@ class NestedSampling:
                                 iteration=true_iter,
                                 plateau_hits=self.plateau_hits,
                                 failed_iter=self.failed_iter,
-                                worst_likelihood=Li,
                             )
                     else:
                         self.terminator(
@@ -2819,7 +2815,7 @@ class AnalysisReplicaExchange(object):
     def plot_rmsd_matrix(self, filename):
         self.compute_all_pairwise_rmsd()
         distance_matrix = np.zeros((len(self.stath0), len(self.stath1)))
-        for (n0, n1) in self.pairwise_rmsd:
+        for n0, n1 in self.pairwise_rmsd:
             distance_matrix[n0, n1] = self.pairwise_rmsd[(n0, n1)]
 
         import matplotlib as mpl

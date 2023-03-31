@@ -34,47 +34,45 @@ for nestor_output_path in tqdm(nestor_results_paths):
 
     for field in fields:
         # Field check
-        if not field in benchmark_results[list(benchmark_results.keys())[0]]:
-            break
+        if field in benchmark_results[list(benchmark_results.keys())[0]]:
+            b_xvals, b_yvals = [], []  # benchmark values
+            for representation in benchmark_results:
+                b_xvals.append(representation)
+                b_yvals.append(benchmark_results[representation][field])
 
-        b_xvals, b_yvals = [], []  # benchmark values
-        for representation in benchmark_results:
-            b_xvals.append(representation)
-            b_yvals.append(benchmark_results[representation][field])
+            n_xvals, n_yvals, n_ystrr = [], [], []  # mean log evidence from nestor
+            for representation in nestor_results:
+                n_xvals.append(representation)
+                temp_yvals = []
+                for run in nestor_results[representation]:
+                    temp_yvals.append(
+                        nestor_results[representation][run]["log_estimated_evidence"]
+                    )
+                n_yvals.append(-1 * np.mean(temp_yvals))
+                sterr = np.std(temp_yvals) / math.sqrt((len(temp_yvals)))
+                n_ystrr.append(sterr)
 
-        n_xvals, n_yvals, n_ystrr = [], [], []  # mean log evidence from nestor
-        for representation in nestor_results:
-            n_xvals.append(representation)
-            temp_yvals = []
-            for run in nestor_results[representation]:
-                temp_yvals.append(
-                    nestor_results[representation][run]["log_estimated_evidence"]
-                )
-            n_yvals.append(-1 * np.mean(temp_yvals))
-            sterr = np.std(temp_yvals) / math.sqrt((len(temp_yvals)))
-            n_ystrr.append(sterr)
+            fig, ax1 = plt.subplots()
+            ax1.scatter(
+                b_xvals, b_yvals, color="C2", marker="o", label=f"Benchmark: {field}"
+            )
+            ax1.set_xlabel("Resolution")
+            ax1.set_ylabel("Benchmark scores")
 
-        fig, ax1 = plt.subplots()
-        ax1.scatter(
-            b_xvals, b_yvals, color="C2", marker="o", label=f"Benchmark: {field}"
-        )
-        ax1.set_xlabel("Resolution")
-        ax1.set_ylabel("Benchmark scores")
+            ax2 = ax1.twinx()
+            ax2.errorbar(
+                n_xvals,
+                n_yvals,
+                yerr=n_ystrr,
+                color="C1",
+                fmt="o",
+                label="Nestor result",
+            )
+            ax2.set_ylabel("Mean -log(Evidence from Nestor)")
+            fig.legend()
 
-        ax2 = ax1.twinx()
-        ax2.errorbar(
-            n_xvals,
-            n_yvals,
-            yerr=n_ystrr,
-            color="C1",
-            fmt="o",
-            label="Nestor result",
-        )
-        ax2.set_ylabel("Mean -log(Evidence from Nestor)")
-        fig.legend()
-
-        output_fig_path = os.path.join(
-            "/".join(nestor_output_path.split("/")[:-1]),
-            f"Comparision_with_benchmark - {field}.png",
-        )
-        fig.savefig(output_fig_path)
+            output_fig_path = os.path.join(
+                "/".join(nestor_output_path.split("/")[:-1]),
+                f"Comparision_with_benchmark - {field}.png",
+            )
+            fig.savefig(output_fig_path)
