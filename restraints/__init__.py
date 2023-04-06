@@ -5,7 +5,7 @@ PMI restraints generally wrap IMP restraints. Typical features in PMI restraints
  - Easy setup: for example, you can usually create one with a PMI [Molecule](@ref IMP::pmi::topology::Molecule) or a slice from one.
  - Fast setup from data files. For example you can set up the [CrossLinkingMassSpectrometryRestraint](@ref IMP::pmi::restraints::crosslinking::CrossLinkingMassSpectrometryRestraint) by reading in a cross-link file into a [database](@ref IMP::pmi::io::crosslink::CrossLinkDataBase).
  - Useful output: reporting functions which are put into log files when running [ReplicaExchange](@ref IMP::pmi::macros::ReplicaExchange0).
-"""   # noqa: E501
+"""  # noqa: E501
 
 import IMP
 import IMP.pmi
@@ -17,8 +17,9 @@ class RestraintBase(object):
 
     """Base class for PMI restraints, which wrap `IMP.Restraint`(s)."""
 
-    def __init__(self, m, name=None, label=None, weight=1.,
-                 restraint_set_class=IMP.RestraintSet):
+    def __init__(
+        self, m, name=None, label=None, weight=1.0, restraint_set_class=IMP.RestraintSet
+    ):
         """Constructor.
         @param m The model object
         @param name The name of the primary restraint set that is wrapped.
@@ -42,8 +43,7 @@ class RestraintBase(object):
         else:
             self.name = str(name)
 
-        self.rs = self._create_restraint_set(name=None,
-                                             cls=restraint_set_class)
+        self.rs = self._create_restraint_set(name=None, cls=restraint_set_class)
 
     def set_label(self, label):
         """Set the unique label used in outputs and particle/restraint names.
@@ -76,7 +76,8 @@ class RestraintBase(object):
         self._label_is_set = True
         for rs in self.restraint_sets:
             IMP.pmi.tools.add_restraint_to_model(
-                self.model, rs, add_to_rmf=self._include_in_rmf)
+                self.model, rs, add_to_rmf=self._include_in_rmf
+            )
 
     def evaluate(self):
         """Evaluate the score of the restraint."""
@@ -111,20 +112,19 @@ class RestraintBase(object):
         suffix = "_Score" + self._label_suffix
         for rs in self.restraint_sets:
             out_name = rs.get_name() + suffix
-            output[out_name] = str(
-                self.weight * rs.unprotected_evaluate(None))
+            output[out_name] = str(self.weight * rs.unprotected_evaluate(None))
         return output
 
-    def get_output_to_nest(self):
-        """Get outputs to for nesting."""
-        output = {}
-        score = self.evaluate()
-        output["_TotalScore"] = str(score)
-        suffix = "_Score" + self._label_suffix
-        for rs in self.restraint_sets:
-            out_name = rs.get_name() + suffix
-            output[out_name] = str(rs.unprotected_evaluate(None))
-        return output
+    # def get_output_to_nest(self):
+    #     """Get outputs to for nesting."""
+    #     output = {}
+    #     score = self.evaluate()
+    #     output["_TotalScore"] = str(score)
+    #     suffix = "_Score" + self._label_suffix
+    #     for rs in self.restraint_sets:
+    #         out_name = rs.get_name() + suffix
+    #         output[out_name] = str(rs.unprotected_evaluate(None))
+    #     return output
 
     def _create_restraint_set(self, name=None, cls=IMP.RestraintSet):
         """Create ``IMP.RestraintSet``."""
@@ -152,8 +152,9 @@ class _RestraintNuisanceMixin(object):
         self.sampled_nuisances = {}
         self.nuisances = {}
 
-    def _create_nuisance(self, init_val, min_val, max_val, max_trans, name,
-                         is_sampled=False):
+    def _create_nuisance(
+        self, init_val, min_val, max_val, max_trans, name, is_sampled=False
+    ):
         """Create nuisance particle.
         @param init_val Initial value of nuisance
         @param min_val Minimum value of nuisance
@@ -164,8 +165,8 @@ class _RestraintNuisanceMixin(object):
         @see IMP.pmi.tools.SetupNuisance
         """
         nuis = IMP.pmi.tools.SetupNuisance(
-            self.model, init_val, min_val, max_val,
-            isoptimized=is_sampled).get_particle()
+            self.model, init_val, min_val, max_val, isoptimized=is_sampled
+        ).get_particle()
         nuis_name = self.name + "_" + name
         nuis.set_name(nuis_name)
         self.nuisances[nuis_name] = nuis
@@ -204,17 +205,12 @@ class _NuisancesBase(object):
         lengthmaxnuis = 1000.0
         lengthmin = 6.0
         lengthmax = 30.0
-        length = IMP.pmi.tools.SetupNuisance(self.m, lengthinit,
-                                             lengthminnuis, lengthmaxnuis,
-                                             self.lengthissampled
-                                             ).get_particle()
+        length = IMP.pmi.tools.SetupNuisance(
+            self.m, lengthinit, lengthminnuis, lengthmaxnuis, self.lengthissampled
+        ).get_particle()
         self.rslen.add_restraint(
-            IMP.isd.UniformPrior(
-                self.m,
-                length,
-                1000000000.0,
-                lengthmax,
-                lengthmin))
+            IMP.isd.UniformPrior(self.m, length, 1000000000.0, lengthmax, lengthmin)
+        )
 
     def create_sigma(self, resolution):
         """Create a nuisance on the structural uncertainty."""
@@ -228,20 +224,13 @@ class _NuisancesBase(object):
         sigmamin = 0.01
         sigmamax = 100.0
         sigmatrans = 0.5
-        sigma = IMP.pmi.tools.SetupNuisance(self.m, sigmainit, sigmaminnuis,
-                                            sigmamaxnuis, self.sigmaissampled
-                                            ).get_particle()
-        self.sigma_dictionary[resolution] = (
-            sigma,
-            sigmatrans,
-            self.sigmaissampled)
+        sigma = IMP.pmi.tools.SetupNuisance(
+            self.m, sigmainit, sigmaminnuis, sigmamaxnuis, self.sigmaissampled
+        ).get_particle()
+        self.sigma_dictionary[resolution] = (sigma, sigmatrans, self.sigmaissampled)
         self.rssig.add_restraint(
-            IMP.isd.UniformPrior(
-                self.m,
-                sigma,
-                1000000000.0,
-                sigmamax,
-                sigmamin))
+            IMP.isd.UniformPrior(self.m, sigma, 1000000000.0, sigmamax, sigmamin)
+        )
         # self.rssig.add_restraint(IMP.isd.JeffreysRestraint(self.sigma))
 
     def get_sigma(self, resolution):
@@ -262,20 +251,13 @@ class _NuisancesBase(object):
         psimin = 0.01
         psimax = 0.49
         psitrans = 0.1
-        psi = IMP.pmi.tools.SetupNuisance(self.m, psiinit,
-                                          psiminnuis, psimaxnuis,
-                                          self.psiissampled).get_particle()
-        self.psi_dictionary[value] = (
-            psi,
-            psitrans,
-            self.psiissampled)
+        psi = IMP.pmi.tools.SetupNuisance(
+            self.m, psiinit, psiminnuis, psimaxnuis, self.psiissampled
+        ).get_particle()
+        self.psi_dictionary[value] = (psi, psitrans, self.psiissampled)
         self.rspsi.add_restraint(
-            IMP.isd.UniformPrior(
-                self.m,
-                psi,
-                1000000000.0,
-                psimax,
-                psimin))
+            IMP.isd.UniformPrior(self.m, psi, 1000000000.0, psimax, psimin)
+        )
         self.rspsi.add_restraint(IMP.isd.JeffreysRestraint(self.m, psi))
 
     def get_psi(self, value):

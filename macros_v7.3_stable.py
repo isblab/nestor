@@ -298,8 +298,7 @@ class ReplicaExchange0(object):
         keys.sort()
         for v in keys:
             print("------", v.ljust(30), self.vars[v])
-        print("Use nester", self.nest)
-        print(self.nester_restraints)
+        print("Use nester: ", self.nest)
 
     def get_replica_exchange_object(self):
         return self.replica_exchange_object
@@ -812,14 +811,6 @@ class NestedSampling:
         base_process = self.comm_obj.Get_rank() == 0
         self.comm_obj.Barrier()
 
-        # Check for shuffle configuration error
-        # if self.exit_code == 11:
-        #     to_comm_exit_code = self.exit_code
-        #     to_comm_rank = self.comm_obj.Get_rank()
-
-        # self.exit_code = self.comm_obj.bcast(
-        #     self.exit_code, root=self.comm_obj.Get_rank()
-        # )
         if "shuffle_config.err" in os.listdir("./"):
             self.exit_code = 11
 
