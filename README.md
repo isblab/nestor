@@ -1,20 +1,18 @@
 [![PubMed](https://salilab.org/imp-systems/static/images/pubmed.png)](https://pubmed.ncbi.nlm.nih.gov/xyz/)     #TODO: Replace xyz with PubMed ID
 
+
 # **NestOR: Optimizing the representation for Integrative Structure Modeling using Nested Sampling**
+
 
 ## **Dependencies:**  
 Standard IMP installation (compiled from the source code), numpy, mergedeep, mpi4py, matplotlib, pyyaml, plotly
-      
-## **Exit codes:**
-**Exit code 0:** Process terminated normally.  
-**Exit code 11:** Process terminated due to either a shuffle configuration error or NaN was encountered in the likelihoods. The process will be restarted automatically.  
-**Exit code 12:** Process terminated as NestOR ran out of maximum allowed iterations. The process will not be restarted.  
-**Exit code 13:** Process terminated due to *Math domain error* in analytical uncertainty calculation. This happened probably because the run terminated too early.   
+
 
 ## **Installation:**
 1. Compile IMP from the souce code to your choice of directory
 2. Replace the `macros.py` in `imp/modules/pmi/pyext/src/` with the macros.py in the current repository. Make sure the file is named `macros.py` in the destination directory. 
 3. Similarly, replace the restraints directory in `imp/modules/pmi/pyext/src/` with the restraints directory in the present repository.
+
 
 ## **Running NestOR:**
 1. Make the modeling script in the form as shown in the `example/modeling.py`. One will also need to make separate topology files for different candidate representations.
@@ -27,6 +25,14 @@ Once the runs terminate, two plots will be generated:
 
 One can also compare NestOR runs with different parameter settings by running `python compare_runs_v2.py run_set1 run_set2 ...` where run_set1 and run_set2 are tbe NestOR runs to be compared.
 
+
+## **Exit codes:**
+**Exit code 0:** Process terminated normally.  
+**Exit code 11:** Process terminated due to either a shuffle configuration error or NaN was encountered in the likelihoods. The process will be restarted automatically.  
+**Exit code 12:** Process terminated as NestOR ran out of maximum allowed iterations. The process will not be restarted.  
+**Exit code 13:** Process terminated due to *Math domain error* in analytical uncertainty calculation. This happened probably because the run terminated too early.   
+
+
 ## **Information**
 **Author(s):** Shreyas Arvindekar, Aditi Pathak, Kartik Majila, Shruthi Viswanath  
 **Date**: April 7th, 2023  
@@ -37,4 +43,4 @@ International License.
 **Testable:** Yes  
 **Parallelizeable:** Yes  
 **Publications:**  Arvindekar, S, Jackman, MJ, Low, JKK, Landsberg, MJ, Mackay, JP, Viswanath, S. Title to be decided. DOI: [](https://doi.org/).     
-## **_TODO: Add title, DOI and link to the DOI_**
+**_TODO: Add title, DOI and link to the DOI_**
