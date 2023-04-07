@@ -27,7 +27,6 @@ Once the runs terminate, two plots will be generated:
 
 One can also compare NestOR runs with different parameter settings by running `python compare_runs_v2.py run_set1 run_set2 ...` where run_set1 and run_set2 are tbe NestOR runs to be compared.
 
----
 ## **Information**
 **Author(s):** Shreyas Arvindekar, Aditi Pathak, Kartik Majila, Shruthi Viswanath  
 **Date**: April 7th, 2023  
