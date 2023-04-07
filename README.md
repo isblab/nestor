@@ -4,7 +4,7 @@
 # **NestOR: Optimizing the representation for Integrative Structure Modeling using Nested Sampling**
 
 
-## **Installation:**
+### **Installation:**
 #### **Dependencies:**  
 Standard IMP installation (compiled from the source code), numpy, mergedeep, mpi4py, matplotlib, pyyaml, plotly
 #### **NestOR installation:**  
@@ -13,7 +13,7 @@ Standard IMP installation (compiled from the source code), numpy, mergedeep, mpi
 3. Similarly, replace the restraints directory in `imp/modules/pmi/pyext/src/` with the restraints directory in the present repository.
 
 
-## **Running NestOR:**
+### **Running NestOR:**
 1. Make the modeling script in the form as shown in the `example/modeling.py`. One will also need to make separate topology files for different candidate representations.
 2. Set appropriate parameters in the `nestor_params.yaml` file. An example param file can be found in `examples/`.
 3. Finally, run nestor with the following command `python wrapper_vX.py $abs_nestor_params_path` where wrapper_vX.py is the wrapper script in this repository and abs_nestor_params_path is the absolute path to your `nestor_params.yaml` file.
@@ -25,14 +25,14 @@ Once the runs terminate, two plots will be generated:
 One can also compare NestOR runs with different parameter settings by running `python compare_runs_v2.py run_set1 run_set2 ...` where run_set1 and run_set2 are tbe NestOR runs to be compared.
 
 
-## **Exit codes:**
+### **Exit codes:**
 **Exit code 0:** Process terminated normally.  
 **Exit code 11:** Process terminated due to either a shuffle configuration error or NaN was encountered in the likelihoods. The process will be restarted automatically.  
 **Exit code 12:** Process terminated as NestOR ran out of maximum allowed iterations. The process will not be restarted.  
 **Exit code 13:** Process terminated due to *Math domain error* in analytical uncertainty calculation. This happened probably because the run terminated too early.   
 
 
-## **Information**
+### **Information**
 **Author(s):** Shreyas Arvindekar, Aditi Pathak, Kartik Majila, Shruthi Viswanath  
 **Date**: April 7th, 2023  
 **License:** [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
