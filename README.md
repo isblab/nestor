@@ -5,9 +5,9 @@
 
 
 ## **Installation:**
-### **Dependencies:**  
+#### **Dependencies:**  
 Standard IMP installation (compiled from the source code), numpy, mergedeep, mpi4py, matplotlib, pyyaml, plotly
-### **NestOR installation:**  
+#### **NestOR installation:**  
 1. Compile IMP from the souce code to your choice of directory
 2. Replace the `macros.py` in `imp/modules/pmi/pyext/src/` with the macros.py in the current repository. Make sure the file is named `macros.py` in the destination directory. 
 3. Similarly, replace the restraints directory in `imp/modules/pmi/pyext/src/` with the restraints directory in the present repository.
