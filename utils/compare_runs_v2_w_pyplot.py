@@ -12,7 +12,6 @@ transparency = 0.75
 
 
 # Start with setting default parameters for matplotlib
-mpl.rcParams["font.family"] = "Arial"
 mpl.rcParams["font.size"] = 12
 
 
@@ -47,12 +46,14 @@ def mean_type_plotter(results: dict, key: str, ylabel: str):
 
     fig = plt.figure()
     for datum in data:
+        datum = list(datum)
+        datum[0] = [str(x.split("_")[-1]) for x in datum[0]]
         plt.scatter(datum[0], datum[1], label=datum[2], alpha=transparency)
 
     plt.xlabel("Representation")
     plt.ylabel(ylabel)
-    fig.legend(bbox_to_anchor=(0.9, 1.05), loc="upper right")
-    fig.savefig(f"{ylabel}_comparison.png", bbox_inches="tight")
+    fig.legend(bbox_to_anchor=(1.15, 1.0), loc="upper right")
+    fig.savefig(f"{ylabel}_comparison.png", bbox_inches="tight", dpi=600)
     plt.close()
 
 
@@ -75,6 +76,8 @@ def errorbar_type_plotter(results: dict, key: str, ylabel: str):
 
     fig = plt.figure()
     for datum in data:
+        datum = list(datum)
+        datum[0] = [str(x.split("_")[-1]) for x in datum[0]]
         plt.errorbar(
             datum[0],
             datum[1],
@@ -85,8 +88,8 @@ def errorbar_type_plotter(results: dict, key: str, ylabel: str):
         )
     plt.xlabel("Representation")
     plt.ylabel(ylabel)
-    fig.legend(bbox_to_anchor=(0.9, 1.05), loc="upper right")
-    fig.savefig(f"{ylabel}_comparison.png", bbox_inches="tight")
+    fig.legend(bbox_to_anchor=(1.15, 1.0), loc="upper right")
+    fig.savefig(f"{ylabel}_comparison.png", bbox_inches="tight", dpi=600)
     plt.close()
 
 
@@ -109,12 +112,14 @@ def plot_sterr(results: dict):
 
     fig = plt.figure()
     for datum in data:
-        plt.scatter(datum[0], datum[1], label=datum[2], alpha=transparency)
+        plt.scatter(
+            datum[0].split("_")[-1], datum[1], label=datum[2], alpha=transparency
+        )
 
     plt.xlabel("Representation")
     plt.ylabel("Log evidence")
-    fig.legend(bbox_to_anchor=(0.9, 1.05), loc="upper right")
-    fig.savefig("stderr_comparison.png", bbox_inches="tight")
+    fig.legend(bbox_to_anchor=(1.15, 1.0), loc="upper right")
+    fig.savefig("stderr_comparison.png", bbox_inches="tight", dpi=600)
     plt.close()
 
 
