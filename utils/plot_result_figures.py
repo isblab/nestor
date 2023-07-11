@@ -1,8 +1,13 @@
 import os
 import glob
 
-conditions = ["ninit", "nfpi", "prior_robustness"]
-system_rename = {"gtusc": "γTuSC", "rnapolii": "RNA polymerase II"}
+conditions = ["nruns", "ninit", "nfpi", "prior_robustness"]
+system_rename = {
+    "gtusc": "γTuSC",
+    "rnapolii": "RNA polymerase II",
+    "mhm": "MHM",
+    "nude": "NuDe",
+}
 parent_path = "/home/shreyas/Projects/cgopt/systems/to_ms/latest"
 
 
@@ -11,7 +16,9 @@ def remove_input_dirs(dir_lst: list[str]):
     for i in dir_lst:
         if not "data" in i:
             if not "input" in i:
-                out_dirs.append(i)
+                if not "old" in i:
+                    if not "temp_plots" in i:
+                        out_dirs.append(i)
     return out_dirs
 
 

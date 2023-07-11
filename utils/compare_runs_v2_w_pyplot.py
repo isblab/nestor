@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 TITLE = sys.argv[1]
 runs_to_compare = sys.argv[2:]
 transparency = 0.75
-
+plt.rcParams["font.family"] = "sans-serif"
 
 # Start with setting default parameters for matplotlib
 mpl.rcParams["font.size"] = 12
@@ -89,6 +89,10 @@ def errorbar_type_plotter(results: dict, key: str, ylabel: str):
             alpha=transparency,
         )
     plt.xlabel("Representation (number of residues per bead)")
+    if "log" in ylabel:
+        plt.rcParams["text.usetex"] = True
+        ylabel = "Mean log$Z$"
+
     plt.ylabel(ylabel)
     plt.title(TITLE)
     # fig.legend(bbox_to_anchor=(1.15, 1.0), loc="upper right")
