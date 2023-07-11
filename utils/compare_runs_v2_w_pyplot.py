@@ -7,7 +7,8 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 
 
-runs_to_compare = sys.argv[1:]
+TITLE = sys.argv[1]
+runs_to_compare = sys.argv[2:]
 transparency = 0.75
 
 
@@ -50,9 +51,10 @@ def mean_type_plotter(results: dict, key: str, ylabel: str):
         datum[0] = [str(x.split("_")[-1]) for x in datum[0]]
         plt.scatter(datum[0], datum[1], label=datum[2], alpha=transparency)
 
-    plt.xlabel("Representation")
+    plt.xlabel("Representation (number of residues per bead)")
     plt.ylabel(ylabel)
-    fig.legend(bbox_to_anchor=(1.15, 1.0), loc="upper right")
+    plt.title(TITLE)
+    # fig.legend(bbox_to_anchor=(1.15, 1.0), loc="upper right")
     fig.savefig(f"{ylabel}_comparison.png", bbox_inches="tight", dpi=600)
     plt.close()
 
@@ -86,9 +88,10 @@ def errorbar_type_plotter(results: dict, key: str, ylabel: str):
             fmt="o",
             alpha=transparency,
         )
-    plt.xlabel("Representation")
+    plt.xlabel("Representation (number of residues per bead)")
     plt.ylabel(ylabel)
-    fig.legend(bbox_to_anchor=(1.15, 1.0), loc="upper right")
+    plt.title(TITLE)
+    # fig.legend(bbox_to_anchor=(1.15, 1.0), loc="upper right")
     fig.savefig(f"{ylabel}_comparison.png", bbox_inches="tight", dpi=600)
     plt.close()
 
@@ -116,9 +119,10 @@ def plot_sterr(results: dict):
             datum[0].split("_")[-1], datum[1], label=datum[2], alpha=transparency
         )
 
-    plt.xlabel("Representation")
+    plt.xlabel("Representation (number of residues per bead)")
     plt.ylabel("Log evidence")
-    fig.legend(bbox_to_anchor=(1.15, 1.0), loc="upper right")
+    plt.title(TITLE)
+    # fig.legend(bbox_to_anchor=(1.15, 1.0), loc="upper right")
     fig.savefig("stderr_comparison.png", bbox_inches="tight", dpi=600)
     plt.close()
 
