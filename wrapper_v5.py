@@ -1,3 +1,4 @@
+from genericpath import isdir
 import os
 import sys
 import yaml
@@ -24,6 +25,9 @@ with open(h_param_file, "r") as paramf:
 
 max_allowed_runs = h_params["max_usable_threads"] // h_params["num_cores"]
 parent_path = h_params["parent_dir"]
+
+if not os.path.isdir(parent_path):
+    os.mkdir(parent_path)
 
 target_runs = str(h_params["num_runs"])
 if "-" not in target_runs:
@@ -82,6 +86,7 @@ def communicate_finished_proc_and_get_remaining_procs(processes: dict):
 def plotter(results: dict):
     all_log_z = {}
     mean_proc_time = []
+    mean_per_step_time = []
     resolutions = []
 
     plt.figure(1)
@@ -91,12 +96,15 @@ def plotter(results: dict):
 
         log_z = []
         proc_time = []
+        per_step_time = []
         for _, run in results[resolution].items():
             log_z.append(run["log_estimated_evidence"])
             proc_time.append(run["nestor_process_time"])
+            per_step_time.append(run["mcmc_step_time"])
 
         all_log_z[resolution] = log_z
         mean_proc_time.append(np.mean(proc_time))
+        mean_per_step_time.append(np.mean(per_step_time))
 
         avg_logz = np.mean(log_z)
         stderr_logz = np.std(log_z) / math.sqrt(len(log_z))
@@ -117,6 +125,15 @@ def plotter(results: dict):
     plt.ylabel("Nested sampling process time")
     plt.savefig(
         os.path.join(parent_path, f"trial_{h_params['trial_name']}_proctime.png")
+    )
+
+    plt.figure(3)
+    resolutions, mean_per_step_time = zip(*sorted(zip(resolutions, mean_per_step_time)))
+    plt.plot(resolutions, mean_per_step_time, c="C2", marker="o")
+    plt.xlabel("Resolutions")
+    plt.ylabel("Mean time per MCMC step")
+    plt.savefig(
+        os.path.join(parent_path, f"trial_{h_params['trial_name']}_persteptime.png")
     )
 
 
