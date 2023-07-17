@@ -15,6 +15,8 @@ resolutions: ['01','05','10','20','30','50']                                    
 # NestOR params
 max_nester_iter: 5000                                                                           # This is the upper cap for the number of iterations. This number must be large to allow the runs to converge.
 num_init_frames: 10                                                                             # The number of live points. Higher this number higher the resolution of Nested sampling.
-num_frames_per_iter: 5                                                                          # Number of frames to be sampled per iteration.
+num_frames_per_iter: 5                                                                          # Number of frames to be sampled per iteration. 
 max_plateau_hits: 10                                                                            # Stopping condition 1: How many consecutive iterations should be similar in likelihood to say that the runs have converged.
 max_failed_iterations: 50                                                                       # Stopping condition 2: How many consecutive sample draws need to be rejected based on likelihood to say that the runs have converged.
+
+#* Remember, one frame = `n` MCMC steps. This number of `n` is set in the modeling script when defining the replica exchange macro
