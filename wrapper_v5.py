@@ -55,7 +55,7 @@ def get_all_toruns(h_params):
     return runs
 
 
-def communicate_finished_proc_and_get_remaining_procs(processes: dict):
+def get_curr_processes_and_terminated_runs(processes: dict):
     faulty_runs = []
     successful_runs = []
     terminated_runs = []
@@ -202,17 +202,17 @@ while len(list(processes.keys())) > 0:
 
     (
         processes,
-        faulty_runs,
+        curr_faulty_runs,
         successful_runs,
-    ) = communicate_finished_proc_and_get_remaining_procs(processes)
+    ) = get_curr_processes_and_terminated_runs(processes)
 
     for proc in successful_runs:
         completed_runs.append(proc)
     if len(processes) == 0:
         break
 
-    if len(faulty_runs) != 0:
-        for fr in faulty_runs:
+    if len(curr_faulty_runs) != 0:
+        for fr in curr_faulty_runs:
             print(f"Will relaunch ({fr[0].split('/')[-1]}, run_{fr[1]})")
             torun.append(fr)
 
@@ -228,9 +228,9 @@ while len(processes) > 0:
 
     (
         processes,
-        faulty_runs,
+        curr_faulty_runs,
         successful_runs,
-    ) = communicate_finished_proc_and_get_remaining_procs(processes)
+    ) = get_curr_processes_and_terminated_runs(processes)
 
     for proc in successful_runs:
         completed_runs.append(proc)
