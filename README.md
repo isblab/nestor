@@ -22,7 +22,7 @@ Once the runs terminate, two plots will be generated:
 1. The plot showing the mean values of evidence for all the candidate representations along with errorbars showing the standard error on the mean.
 2. A scatter plot showing the mean total nestor process time for all candidate representations.  
 
-One can also compare NestOR runs with different parameter settings by running `python compare_runs_v2.py run_set1 run_set2 ...` where run_set1 and run_set2 are tbe NestOR runs to be compared.
+One can also compare NestOR runs with different parameter settings by running `python utils/compare_runs_v2_w_pyplot.py comparison_title run_set1 run_set2 ...` where comparison_title is the title for the runs to be compared, run_set1 and run_set2 are tbe NestOR runs to be compared.
 
 
 ### **Exit codes:**
