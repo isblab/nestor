@@ -147,6 +147,7 @@ toPlot_meanType: dict = {
 toPlot_errorbarType: dict = {
     "last_iter": "Mean terations",
     "log_estimated_evidence": "Mean log(Z)",
+    "mcmc_step_time": "Mean time per MCMC step",
 }
 
 for key, y_lbl in toPlot_meanType.items():
