@@ -1,7 +1,7 @@
 [![PubMed](https://salilab.org/imp-systems/static/images/pubmed.png)](https://pubmed.ncbi.nlm.nih.gov/xyz/)     #TODO: Replace xyz with PubMed ID
 
 
-# **NestOR: Optimizing the representation for Integrative Structure Modeling using Nested Sampling**
+# **NestOR: Nested Sampling-based Optimization of Representation for Integrative Structural Modeling**
 
 
 ## **Installation:**
