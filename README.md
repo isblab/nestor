@@ -37,10 +37,15 @@ Once the runs terminate, two plots will be generated:
 #TODO describe the output values here. 
 
 **Exit codes:**
-**Exit code 0:** Process terminated normally.  
-**Exit code 11:** Process terminated due to either a shuffle configuration error or NaN was encountered in the likelihoods. The process will be restarted automatically.  
-**Exit code 12:** Process terminated as NestOR ran out of maximum allowed iterations. The process will not be restarted.  
-**Exit code 13:** Process terminated due to *Math domain error* in analytical uncertainty calculation. This happened probably because the run terminated too early resulting in a negative value for H.   
+**Exit code 0:** Run terminated normally.  
+**Exit code 11:** Run terminated due to either a shuffle configuration error or NaN was encountered in the likelihoods. The run will be restarted automatically.  
+**Exit code 12:** Run terminated as NestOR ran out of maximum allowed iterations. The run will not be restarted.  
+**Exit code 13:** Run  terminated due to *Math domain error* in analytical uncertainty calculation. This happened probably because the run terminated too early resulting in a negative value for H. 
+
+#TODO exit codes 12, 13: do we use in our statistics? Mention in README
+
+## Choice of NestOR parameters 
+#TODO Why make it redundant with the paper? 
 
 ## **Information**
 **Author(s):** Shreyas Arvindekar, Aditi Pathak, Kartik Majila, Shruthi Viswanath  
