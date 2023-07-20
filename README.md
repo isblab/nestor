@@ -27,22 +27,22 @@ Run NestOR with the following command `python wrapper_vX.py $abs_nestor_params_p
 
 ### Outputs 
 
-#### Plots
+### Plots
 Once the runs terminate, two plots will be generated: 
 1. **Evidence**: The plot showing the mean values of evidence for all the candidate representations along with errorbars showing the standard error on the mean.
 2. **MCMC per-step time**: #TODO
 3. **NestOR efficiency**: A scatter plot showing the mean total NestOR process time for all candidate representations.  
 
-#### YAML file
+### Output YAML file
 #TODO describe the output values here. 
 
-##### **Exit codes:**
+**Exit codes:**
 **Exit code 0:** Process terminated normally.  
 **Exit code 11:** Process terminated due to either a shuffle configuration error or NaN was encountered in the likelihoods. The process will be restarted automatically.  
 **Exit code 12:** Process terminated as NestOR ran out of maximum allowed iterations. The process will not be restarted.  
 **Exit code 13:** Process terminated due to *Math domain error* in analytical uncertainty calculation. This happened probably because the run terminated too early resulting in a negative value for H.   
 
-### **Information**
+## **Information**
 **Author(s):** Shreyas Arvindekar, Aditi Pathak, Kartik Majila, Shruthi Viswanath  
 **Date**: April 7th, 2023  
 **License:** [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
