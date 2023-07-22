@@ -3,7 +3,6 @@
 
 # **NestOR: Nested Sampling-based Optimization of Representation for Integrative Structural Modeling**
 
-
 ## **Installation:**
 ### **Dependencies:**  
 * IMP (compiled from the source code). See [IMP installation](https://github.com/salilab/imp)
@@ -25,7 +24,7 @@ Run NestOR with the following command `python wrapper_vX.py $abs_nestor_params_p
 
 **Note** One can also compare two completed NestOR runs with different parameter settings by running `python utils/compare_runs_v2_w_pyplot.py comparison_title run_set1 run_set2 ...` where comparison_title is the title for the runs to be compared, run_set1 and run_set2 are the NestOR runs to be compared.
 
-### Outputs 
+## Outputs 
 
 ### Plots
 Once the runs terminate, two plots will be generated: 
@@ -34,27 +33,32 @@ Once the runs terminate, two plots will be generated:
 3. **NestOR efficiency**: A scatter plot showing the mean total NestOR process time for all candidate representations.  
 
 ### Output YAML file
+
 **Evidence related:**  
-- analytical_uncertainty: `float`  
-    _The analytical uncertainty associated with a evidence estimation for a run by nested sampling_  
-- exit_code: `int` (0, 11, 12, 13)  
-    _Exit code for a nested sampling run_
-- failed_iter: `int`  
-    _Number of times Replica Exchange failed to obtain a sample from constrained prior in the current iteration of nested sampling_
-- last_iter: `int`  
-    _Iteration count when nested sampling terminated_
 - log_estimated_evidence: `float`  
     _The estimated evidence value represented as natural logarithm of the estimated evidence_
+  - information: `float`  
+    _Information obtained from the nested sampling run_
+- analytical_uncertainty: `float`  
+    _The analytical uncertainty associated with a evidence estimation for a run by nested sampling_
+
+**Efficiency related**   
 - mcmc_step_time: `float`  
     _Time taken per MCMC step. This is computed as `(time taken for iteration 0)/((number of initial frames)*(number of MCMC steps per frame))`_
 - nestor_process_time: `float`  
     _Wall clock time taken by a nested sampling run to finish, represented in seconds_
-- information: `float`  
-    _Information obtained from the nested sampling run_
-- plateau_hits: `int`  
-    _Number of consecutive times the nested sampling protocol detected a plateau in the estimated evidence_
+
+**Exit mode related** 
+- exit_code: `int` (0, 11, 12, 13)  
+    _Exit code for a nested sampling run_
 - termination_mode: `str`  
     _Cause for run termination_
+- failed_iter: `int`  
+    _Number of times Replica Exchange failed to obtain a sample from constrained prior in the current iteration of nested sampling_
+- last_iter: `int`  
+    _Iteration count when nested sampling terminated_
+- plateau_hits: `int`  
+    _Number of consecutive times the nested sampling protocol detected a plateau in the estimated evidence_
 
 **Exit codes:**  
 - Exit code 0: Run terminated normally.  
@@ -62,7 +66,8 @@ Once the runs terminate, two plots will be generated:
 - Exit code 12: Run terminated as NestOR ran out of maximum allowed iterations. The run will not be restarted.  
 - Exit code 13: Run  terminated due to *Math domain error* in analytical uncertainty calculation. This happened probably because the run terminated too early resulting in a negative value for H. 
 
-**_If a run terminates with `exit code = 12`, the run is considered incomplete (and is not rerun) and its results are not considered valid, i.e. these are not plotted and therefore not used to infer optimal representation_**
+**_If a run terminates with `exit code = 12`, the run is considered incomplete (and is not rerun) and its results are not considered valid, i.e. these are not plotted and not used to infer optimal representation. Results from runs with exit codes 0 and 13 are used to infer the optimal representation_**
+
 ## Choice of NestOR parameters 
 
 ## **Information**
