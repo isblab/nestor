@@ -37,7 +37,7 @@ Once the runs terminate, these plots will be generated:
 **Evidence related:**  
 - log_estimated_evidence: `float`  
     _The estimated evidence value represented as natural logarithm of the estimated evidence_
-- information: `float`  
+- obtained_information: `float`  
     _Information obtained from the nested sampling run_
 - analytical_uncertainty: `float`  
     _The analytical uncertainty associated with a evidence estimation for a run by nested sampling_
@@ -56,7 +56,7 @@ Once the runs terminate, these plots will be generated:
 - failed_iter: `int`  
     _Number of times Replica Exchange failed to obtain a sample from constrained prior in the current iteration of nested sampling_
 - last_iter: `int`  
-    _Iteration count when nested sampling terminated_
+    _Iteration count (number of iterations) when nested sampling terminated_
 - plateau_hits: `int`  
     _Number of consecutive times the nested sampling protocol detected a plateau in the estimated evidence_
 
