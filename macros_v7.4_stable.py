@@ -828,12 +828,6 @@ class NestedSampling:
         if self.exit_code is None:
             # Check for nan through small test run
             self.comm_obj.Barrier()
-            if base_process:
-                print(
-                    f"{'-'*50}\nTest run complete, no NaN found. Continuing...\n{'-'*50}\n\n"
-                )
-            self.comm_obj.Barrier()
-
             self.sample_initial_frames()
             self.comm_obj.Barrier()
 
