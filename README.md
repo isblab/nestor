@@ -29,8 +29,8 @@ Run NestOR with the following command `python wrapper_vX.py $abs_nestor_params_p
 
 ### Plots
 Once the runs terminate, two plots will be generated: 
-1. **Evidence**: The plot showing the mean values of evidence for all the candidate representations along with errorbars showing the standard error on the mean.
-2. **MCMC per-step time**: #TODO
+1. **Evidence**: The plot shows the mean values of evidence for all the candidate representations along with errorbars showing the standard error on the mean.
+2. **MCMC per-step time**: The plot shows the time required to sample one MCMC step per run. This is computed as `\frac {time taken for iteration 0}/{{number of initial frames}*{number of MCMC steps per frame}}`
 3. **NestOR efficiency**: A scatter plot showing the mean total NestOR process time for all candidate representations.  
 
 ### Output YAML file
