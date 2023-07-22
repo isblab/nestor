@@ -37,7 +37,7 @@ Once the runs terminate, these plots will be generated:
 **Evidence related:**  
 - log_estimated_evidence: `float`  
     _The estimated evidence value represented as natural logarithm of the estimated evidence_
-  - information: `float`  
+- information: `float`  
     _Information obtained from the nested sampling run_
 - analytical_uncertainty: `float`  
     _The analytical uncertainty associated with a evidence estimation for a run by nested sampling_
@@ -48,7 +48,7 @@ Once the runs terminate, these plots will be generated:
 - nestor_process_time: `float`  
     _Wall clock time taken by a nested sampling run to finish, represented in seconds_
 
-**Exit mode related** 
+**Termination related** 
 - exit_code: `int` (0, 11, 12, 13)  
     _Exit code for a nested sampling run_
 - termination_mode: `str`  
