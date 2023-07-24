@@ -108,7 +108,9 @@ def plotter(results: dict):
 
         avg_logz = np.mean(log_z)
         stderr_logz = np.std(log_z) / math.sqrt(len(log_z))
-        plt.errorbar(int(resolution[4:]), avg_logz, yerr=stderr_logz, fmt="o")
+        plt.errorbar(
+            int(resolution[4:]), avg_logz, yerr=stderr_logz, fmt="o", c="dodgerblue"
+        )
 
     plt.xlabel("Resolutions")
     plt.ylabel("log(Evidence)")
