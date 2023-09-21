@@ -19,4 +19,3 @@ num_frames_per_iter: 5                                                          
 max_plateau_hits: 10                                                                            # Stopping condition 1: How many consecutive iterations should be similar in likelihood to say that the runs have converged.
 max_failed_iterations: 50                                                                       # Stopping condition 2: How many consecutive sample draws need to be rejected based on likelihood to say that the runs have converged.
 
-#* Remember, one frame = `n` MCMC steps. This number of `n` is set in the modeling script when defining the replica exchange macro
