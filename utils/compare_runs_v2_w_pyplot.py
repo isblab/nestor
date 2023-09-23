@@ -77,7 +77,7 @@ def errorbar_type_plotter(results: dict, key: str, ylabel: str):
         data.append((xvals, yvals, yerr, parent))
 
     fig = plt.figure()
-    for datum in data:
+    for idx, datum in enumerate(data):
         datum = list(datum)
         datum[0] = [str(x.split("_")[-1]) for x in datum[0]]
         plt.errorbar(
@@ -87,15 +87,16 @@ def errorbar_type_plotter(results: dict, key: str, ylabel: str):
             label=datum[3],
             fmt="o",
             alpha=transparency,
+            c=f"C{idx}",
         )
     plt.xlabel("Representation (number of residues per bead)")
     if "log" in ylabel:
-        plt.rcParams["text.usetex"] = True
+        # plt.rcParams["text.usetex"] = True
         ylabel = "Mean log$Z$"
 
     plt.ylabel(ylabel)
     plt.title(TITLE)
-    # fig.legend(bbox_to_anchor=(1.15, 1.0), loc="upper right")
+    fig.legend(bbox_to_anchor=(1.15, 1.0), loc="upper right")
     fig.savefig(f"{ylabel}_comparison.png", bbox_inches="tight", dpi=600)
     plt.close()
 
@@ -120,13 +121,16 @@ def plot_sterr(results: dict):
     fig = plt.figure()
     for datum in data:
         plt.scatter(
-            datum[0].split("_")[-1], datum[1], label=datum[2], alpha=transparency
+            [x.split("_")[-1] for x in datum[0]],  # datum[0].split("_")[-1],
+            datum[1],
+            label=datum[2],
+            alpha=transparency,
         )
 
     plt.xlabel("Representation (number of residues per bead)")
-    plt.ylabel("Log evidence")
+    plt.ylabel("Standard error on log(Evidence)")
     plt.title(TITLE)
-    # fig.legend(bbox_to_anchor=(1.15, 1.0), loc="upper right")
+    # fig.legend()  # bbox_to_anchor=(1.15, 1.0),loc="upper right"
     fig.savefig("stderr_comparison.png", bbox_inches="tight", dpi=600)
     plt.close()
 
@@ -140,14 +144,14 @@ nestor_results = get_all_results(runs_to_compare)
 # plot_sterr(nestor_results, figid=figid)
 
 toPlot_meanType: dict = {
-    "nestor_process_time": "Mean NestOR process time",
     "analytical_uncertainty": "Mean analytical uncertainties",
 }
 
 toPlot_errorbarType: dict = {
-    "last_iter": "Mean terations",
+    "last_iter": "Mean iterations",
     "log_estimated_evidence": "Mean log(Z)",
-    "mcmc_step_time": "Mean time per MCMC step",
+    "nestor_process_time": "Mean NestOR process time",
+    # "mcmc_step_time": "Mean time per MCMC step",
 }
 
 for key, y_lbl in toPlot_meanType.items():
@@ -163,3 +167,5 @@ for key, y_lbl in toPlot_errorbarType.items():
         key=key,
         ylabel=y_lbl,
     )
+
+plot_sterr(nestor_results)
