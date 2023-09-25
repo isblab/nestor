@@ -65,8 +65,8 @@ def get_curr_processes_and_terminated_runs(processes: dict):
             proc.wait()
             terminated_runs.append(run_deets)
 
-        if proc.returncode == 11:
-            faulty_runs.append(run_deets)
+        if proc.returncode == 11 or proc.returncode == 12:
+            faulty_runs.append((run_deets, proc))
             shutil.rmtree(os.path.join(run_deets[0], f"run_{run_deets[1]}"))
         elif proc.returncode == 0:
             successful_runs.append((run_deets, proc))
@@ -201,6 +201,7 @@ while len(list(processes.keys())) > 0:
         for _, p in processes.items():
             if p.poll() is not None:
                 waiting = False
+            # print(p.poll())
 
     (
         processes,
@@ -214,9 +215,17 @@ while len(list(processes.keys())) > 0:
         break
 
     if len(curr_faulty_runs) != 0:
-        for fr in curr_faulty_runs:
-            print(f"Will relaunch ({fr[0].split('/')[-1]}, run_{fr[1]})")
-            torun.append(fr)
+        for fr, p in curr_faulty_runs:
+            if p.returncode == 11:
+                print(f"Will relaunch ({fr[0].split('/')[-1]}, run_{fr[1]})")
+                torun.append(fr)
+            elif p.returncode == 12:
+                print(
+                    f"Terminated: {fr[0].split('/')[-1]}, run_{fr[1]} with exit code: {p.returncode}"
+                )
+                print(
+                    f"{fr[0].split('/')[-1]}, run_{fr[1]} ran out of maximum allowed iterations before converging. Will not relaunch it..."
+                )
 
 
 print(f"Waiting for {len(processes.keys())} processes to terminate...")
@@ -246,14 +255,15 @@ print("Performing housekeeping tasks")
 
 for proc in completed_runs:
     run_deets, p = proc
-    out, _ = p.communicate()
+    if p.returncode == 0:
+        out, _ = p.communicate()
 
-    result = literal_eval(out[4:])
+        result = literal_eval(out[4:])
 
-    if run_deets[0].split("/")[-1] not in results.keys():
-        results[f"{run_deets[0].split('/')[-1]}"] = {f"run_{run_deets[1]}": result}
-    else:
-        results[f"{run_deets[0].split('/')[-1]}"][f"run_{run_deets[1]}"] = result
+        if run_deets[0].split("/")[-1] not in results.keys():
+            results[f"{run_deets[0].split('/')[-1]}"] = {f"run_{run_deets[1]}": result}
+        else:
+            results[f"{run_deets[0].split('/')[-1]}"][f"run_{run_deets[1]}"] = result
 
 if "nestor_output.yaml" in os.listdir(parent_path):
     with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as inf:
@@ -263,5 +273,8 @@ if "nestor_output.yaml" in os.listdir(parent_path):
 with open(f"{parent_path}/nestor_output.yaml", "w") as outf:
     yaml.dump(results, outf)
 
-plotter(results)
+if len(list(results.keys())) > 0:
+    plotter(results)
+else:
+    print("\nNone of the runs was successful...!")
 print("Done...!\n\n")
