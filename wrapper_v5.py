@@ -67,7 +67,8 @@ def get_curr_processes_and_terminated_runs(processes: dict):
 
         if proc.returncode == 11 or proc.returncode == 12:
             faulty_runs.append((run_deets, proc))
-            shutil.rmtree(os.path.join(run_deets[0], f"run_{run_deets[1]}"))
+            if proc.returncode == 11:
+                shutil.rmtree(os.path.join(run_deets[0], f"run_{run_deets[1]}"))
         elif proc.returncode == 0:
             successful_runs.append((run_deets, proc))
 

@@ -799,9 +799,6 @@ class NestedSampling:
         else:
             self.return_vals["run_params"] = self.h_params
 
-            # with open('error.log','w') as elf:
-            #     elf.write(f"Run parameters: {self.h_params}\n\n")
-            #     elf.write(f'Error encountered: {self.termination_mode}\n')
         self.return_vals["termination_mode"] = self.termination_mode
         self.return_vals["exit_code"] = self.exit_code
 
@@ -823,6 +820,7 @@ class NestedSampling:
     def execute_nested_sampling2(self):
         self.tic = time.time()
         import matplotlib.pyplot as plt
+
         i = 0
         true_iter = 0
         base_process = self.comm_obj.Get_rank() == 0
@@ -931,15 +929,6 @@ class NestedSampling:
                             with open("temporary_output.yaml", "w") as tof:
                                 yaml.dump(tempout, tof)
 
-                        if true_iter == self.nester_niter:
-                            self.termination_mode = "Error: MaxIterations reached without convergence criteria"
-                            self.exit_code = 12
-                            self.exit_code = self.comm_obj.bcast(self.exit_code, root=0)
-                            self.terminator(
-                                iteration=true_iter,
-                                plateau_hits=self.plateau_hits,
-                                failed_iter=self.failed_iter,
-                            )
                     else:
                         self.terminator(
                             iteration=true_iter,
@@ -947,7 +936,6 @@ class NestedSampling:
                             failed_iter=self.failed_iter,
                         )
 
-                    
                     live_fig, live_ax = plt.subplots(1)
                     live_ax.set_xlabel("log(Xi)")
                     live_ax.set_ylabel("log(Li)")
@@ -956,6 +944,18 @@ class NestedSampling:
                     plt.close()
 
                 self.comm_obj.Barrier()
+                true_iter = self.comm_obj.bcast(true_iter, root=0)
+                if true_iter == self.nester_niter:
+                    self.termination_mode = (
+                        "Error: MaxIterations reached without convergence criteria"
+                    )
+                    self.exit_code = 12
+                    self.exit_code = self.comm_obj.bcast(self.exit_code, root=0)
+                    self.terminator(
+                        iteration=true_iter,
+                        plateau_hits=self.plateau_hits,
+                        failed_iter=self.failed_iter,
+                    )
 
         else:
             if base_process:
