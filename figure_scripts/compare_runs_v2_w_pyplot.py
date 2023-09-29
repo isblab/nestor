@@ -141,7 +141,6 @@ def plot_sterr(results: dict):
 
 nestor_results = get_all_results(runs_to_compare)
 
-# plot_sterr(nestor_results, figid=figid)
 
 toPlot_meanType: dict = {
     "analytical_uncertainty": "Mean analytical uncertainties",
