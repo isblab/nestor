@@ -1,0 +1,19 @@
+
+# Please provide absolute paths for imp_path and modeling_script_path keys
+imp_path: '<<<Path to IMP>>>'
+modeling_script_path: 'example/nude_modeling.py'
+parent_dir: 'example/runs/'
+
+# Wrapper params
+num_runs: 5
+num_cores: 4
+trial_name: 'optrep_params'
+resolutions: ['01','05','10','20','30','50']
+
+# NestOR params
+max_usable_threads: 120
+max_nester_iter: 5000
+num_init_frames: 50
+num_frames_per_iter: 5
+max_plateau_hits: 10
+max_failed_iterations: 50

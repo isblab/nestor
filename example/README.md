@@ -1,0 +1,2 @@
+Here is an example describing the use of NestOR to compare six different coarse-grained representations of the Nucleosome Deacetylase (NuDe) sub-complex of the Nucleosome Remodeling and Deacetylase (NuRD) complex. The `input` and `nude_modeling.py` are adapted from the [Integrative model of the NuRD subcomplexes](https://github.com/isblab/nurd) repository.
+ed using IMP (Integrative Modeling Platform)

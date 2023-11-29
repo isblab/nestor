@@ -1,0 +1,61 @@
+|directories|
+|pdb_dir|pdb/|
+|fasta_dir|fasta/|
+|gmm_dir|gmm/|
+
+|topology_dictionary|
+
+|molecule_name|color|fasta_fn|fasta_id|pdb_fn|chain|residue_range|pdb_offset|bead_size|em_residues_per_gaussian|rigid_body|super_rigid_body|chain_of_super_rigid_bodies|
+
+|MTA1       |orange             |MTA1.fasta    |MTA1_Q13330    |MTA1.0_1-164_BAH.pdb                  |J|1,164        |0   	  |10    |10   |1   |1  | |
+|MTA1       |orange             |MTA1.fasta    |MTA1_Q13330    |HDAC1-MTA1_ext.pdb                    |A|165,333      |0   	  |10    |10   |2   |1  | |
+|MTA1       |orange             |MTA1.fasta    |MTA1_Q13330    |MTA1.0_334-353_ns.pdb                 |A|334,353      |0   	  |10    |10   |3   |1  | |
+|MTA1       |orange             |MTA1.fasta    |MTA1_Q13330    |BEADS                                 | |354,388      |0   	  |100   |100  |    |1  | |
+|MTA1       |orange             |MTA1.fasta    |MTA1_Q13330    |MTA1.0_389-431_ZF.pdb                 |A|389,431      |0      |10    |10   |4   |1  | |
+|MTA1       |orange             |MTA1.fasta    |MTA1_Q13330    |BEADS                                 | |432,467      |0   	  |100   |100  |    |1  | |
+|MTA1       |orange             |MTA1.fasta    |MTA1_Q13330    |RBBP4.0-MTA1_468-546_5FXY.pdb         |B|468,546      |0   	  |10    |10   |5   |1  | |
+|MTA1       |orange             |MTA1.fasta    |MTA1_Q13330    |BEADS                                 | |547,669      |0   	  |100   |100  |    |1  | |
+|MTA1       |orange             |MTA1.fasta    |MTA1_Q13330    |RBBP4.2-MTA1_670-691_4PBZ.pdb         |B|670,691      |0   	  |10    |10   |6   |1  | |
+|MTA1       |orange             |MTA1.fasta    |MTA1_Q13330    |BEADS                                 | |692,715      |0      |100   |100  |    |1  | |
+
+|MTA1.1     |orange             |MTA1.fasta    |MTA1_Q13330    |MTA1.1_1-164_BAH.pdb                  |J|1,164        |0   	  |10    |10   |7   |2  | |
+|MTA1.1     |orange             |MTA1.fasta    |MTA1_Q13330    |HDAC1-MTA1_ext.pdb                    |C|2165,2333    |-2000  |10    |10   |2   |2  | |
+|MTA1.1     |orange             |MTA1.fasta    |MTA1_Q13330    |MTA1.1_334-353_ns.pdb                 |A|334,353      |0      |10    |10   |8   |2  | |
+|MTA1.1     |orange             |MTA1.fasta    |MTA1_Q13330    |BEADS                                 | |354,388      |0   	  |100   |100  |    |2  | |
+|MTA1.1     |orange             |MTA1.fasta    |MTA1_Q13330    |MTA1.1_389-431_ZF.pdb                 |A|389,431      |0   	  |10    |10   |9   |2  | |
+|MTA1.1     |orange             |MTA1.fasta    |MTA1_Q13330    |BEADS                                 | |432,467      |0   	  |100   |100  |    |2  | |
+|MTA1.1     |orange             |MTA1.fasta    |MTA1_Q13330    |RBBP4.1-MTA1_468-546_5FXY.pdb         |B|468,546      |0      |10    |10   |10  |2  | |
+|MTA1.1     |orange             |MTA1.fasta    |MTA1_Q13330    |BEADS                                 | |547,669      |0   	  |100   |100  |    |2  | |
+|MTA1.1     |orange             |MTA1.fasta    |MTA1_Q13330    |RBBP4.3-MTA1_670-691_4PBZ.pdb         |B|670,691      |0   	  |10    |10   |11  |2  | |
+|MTA1.1     |orange             |MTA1.fasta    |MTA1_Q13330    |BEADS                                 | |692,715      |0   	  |100   |100  |    |2  | |
+
+
+|HDAC1      |yellow             |HDAC1.fasta   |HDAC1_Q13547   |BEADS                                 | |1,7          |0   	  |100   |100  |    |3  | |
+|HDAC1      |yellow             |HDAC1.fasta   |HDAC1_Q13547   |HDAC1-MTA1_ext.pdb                    |B|1008,1376    |-1000  |10    |10   |2   |3  | |
+|HDAC1      |yellow             |HDAC1.fasta   |HDAC1_Q13547   |BEADS                                 | |377,482      |0   	  |100   |100  |    |3  | |
+
+|HDAC1.1    |yellow             |HDAC1.fasta   |HDAC1_Q13547   |BEADS                                 | |1,7          |0   	  |100   |100  |    |4  | |
+|HDAC1.1    |yellow             |HDAC1.fasta   |HDAC1_Q13547   |HDAC1-MTA1_ext.pdb                    |D|3008,3376    |-3000  |10    |10   |2   |4  | |
+|HDAC1.1    |yellow             |HDAC1.fasta   |HDAC1_Q13547   |BEADS                                 | |377,482      |0   	  |100   |100  |    |4  | |
+
+
+|RBBP4      |blue               |RBBP4.fasta   |RBBP4_Q09028   |RBBP4.0-MTA1_468-546_5FXY.pdb         |A|1,411        |0   	  |10    |10   |5   |5  | |
+|RBBP4      |blue               |RBBP4.fasta   |RBBP4_Q09028   |BEADS                                 | |412,425      |0   	  |100   |100  |    |5  | |
+
+|RBBP4.1    |blue	              |RBBP4.fasta   |RBBP4_Q09028   |RBBP4.1-MTA1_468-546_5FXY.pdb         |A|1,411        |0   	  |10    |10   |10  |6  | |
+|RBBP4.1    |blue    	          |RBBP4.fasta   |RBBP4_Q09028   |BEADS                                 | |412,425      |0   	  |100   |100  |    |6  | |
+
+|RBBP4.2    |cornflower blue    |RBBP4.fasta   |RBBP4_Q09028   |RBBP4.2-MTA1_670-691_4PBZ.pdb         |A|1,411        |0   	  |10    |10   |6   |7  | |
+|RBBP4.2    |cornflower blue    |RBBP4.fasta   |RBBP4_Q09028   |BEADS                                 | |412,425      |0   	  |100   |100  |    |7  | |
+
+|RBBP4.3    |cornflower blue    |RBBP4.fasta   |RBBP4_Q09028   |RBBP4.3-MTA1_670-691_4PBZ.pdb         |A|1,411        |0   	  |10    |10   |11  |8  | |
+|RBBP4.3    |cornflower blue    |RBBP4.fasta   |RBBP4_Q09028   |BEADS                                 | |412,425      |0   	  |100   |100  |    |8  | |
+
+
+|MBD3       |green              |MBD3.fasta    |MBD3_O95983    |MBD3.0_1-71.pdb                       |A|1,71         |0  	  |10    |10   |12  |9  | |
+|MBD3       |green              |MBD3.fasta    |MBD3_O95983    |BEADS                                 | |72,213       |0   	  |100   |100  |    |9  | |
+|MBD3       |green              |MBD3.fasta    |MBD3_O95983    |GATAD2B-Anumbers-MBD3-cc.pdb          |B|209,244      |5      |10    |10   |13  |9  | |
+|MBD3       |green              |MBD3.fasta    |MBD3_O95983    |BEADS                                 | |250,295      |0   	  |100   |100  |    |9  | |
+
+
+|P66A       |dark slate gray    |GATAD2A.fasta |GATAD2A_Q86YP4 |GATAD2B-Anumbers-MBD3-cc.pdb          |A|136,178      |0      |10    |10   |13  |10 | |
