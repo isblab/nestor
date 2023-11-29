@@ -16,13 +16,23 @@
 ## **Running NestOR:**
 
 ### Inputs 
-1. Make the modeling script in the form as shown in the `example/modeling.py`. One will also need to make separate topology files for different candidate representations.
-2. Set appropriate parameters in the `nestor_params.yaml` file. An example param file can be found in `examples/`.
+(See also `example/`)
+1. Split the crosslinks into sampling and evidence calculation subsets using `python utils/xl_datasplitter.py {path}` where, path refers to the path of the target crosslinking file.
+2. Make the modeling script in the form as shown in the `example/modeling.py`. One will also need to make separate topology files for different candidate representations.
+3. Set appropriate parameters in the `nestor_params.yaml` file. 
 
 ### Run command
-Run NestOR with the following command `python wrapper_vX.py $abs_nestor_params_path` where wrapper_vX.py is the wrapper script in this repository and `abs_nestor_params_path` is the absolute path to your `nestor_params.yaml` file.
+1. Run the NestOR wrapper as follows: 
+```python wrapper_v5.py {nestor_param_path} {mode}```
+where, `nestor_param_path` refers to the absolute path to the `nestor_params.yaml`file and mode refers to the mode of representation (`manual`/`topology`). The default choice is topology (does not need to be mentioned), If the representation is defined in the modeling script, use manual argument.
 
-**Note** One can also compare two completed NestOR runs with different parameter settings by running `python utils/compare_runs_v2_w_pyplot.py comparison_title run_set1 run_set2 ...` where comparison_title is the title for the runs to be compared, run_set1 and run_set2 are the NestOR runs to be compared.
+2. Run the following command: 
+```python figure_scripts/plot_evidence_proctime_together.py {path} {name}```
+where, `path` refers to the parent_dir in NestOR params file and `name` refers to the name of the assembly for which the representations is being optimized.
+
+**Note**
+_One `NestOR run` corresponds to the set of all nested sampling runs for all candidate representations._
+One can also compare results from `NestOR runs` with different parameter settings by running `python utils/compare_runs_v2_w_pyplot.py comparison_title run_set1 run_set2 ...` where comparison_title is the title for the runs to be compared, run_set1 and run_set2 are the NestOR runs to be compared.
 
 ## Outputs 
 
@@ -39,7 +49,7 @@ Once the runs terminate, these plots will be generated:
 - obtained_information: `float`  
     _Information obtained from the nested sampling run_
 - analytical_uncertainty: `float`  
-    _The analytical uncertainty associated with a evidence estimation for a run by nested sampling_
+    _The analytical uncertainty associated with evidence estimation for a run by nested sampling_
 
 **Efficiency related**   
 - mcmc_step_time: `float`  
