@@ -16,12 +16,14 @@
 ## **Running NestOR:**
 
 ### Inputs 
+
 (See also `example/`)
 1. Split the crosslinks into sampling and evidence calculation subsets using `python utils/xl_datasplitter.py {path}` where, path refers to the path of the target crosslinking file.
 2. Make the modeling script in the form as shown in the `example/modeling.py`. One will also need to make separate topology files for different candidate representations.
 3. Set appropriate parameters in the `nestor_params.yaml` file. 
 
 ### Run command
+
 1. Run the NestOR wrapper as follows: 
 ```python wrapper_v5.py {nestor_param_path} {mode}```
 where, `nestor_param_path` refers to the absolute path to the `nestor_params.yaml`file and mode refers to the mode of representation (`manual`/`topology`). The default choice is topology (does not need to be mentioned), If the representation is defined in the modeling script, use manual argument.
@@ -31,17 +33,26 @@ where, `nestor_param_path` refers to the absolute path to the `nestor_params.yam
 where, `path` refers to the parent_dir in NestOR params file and `name` refers to the name of the assembly for which the representations is being optimized.
 
 **Note**
+
 _One `NestOR run` corresponds to the set of all nested sampling runs for all candidate representations._
 One can also compare results from `NestOR runs` with different parameter settings by running `python utils/compare_runs_v2_w_pyplot.py comparison_title run_set1 run_set2 ...` where comparison_title is the title for the runs to be compared, run_set1 and run_set2 are the NestOR runs to be compared.
 
 ## Outputs 
 
 ### Plots
-Once the runs terminate, these plots will be generated: 
-1. **Evidence**: The plot shows the mean values of evidence for all the candidate representations along with errorbars showing the standard error on the mean.
-2. **MCMC per-step time**: The plot shows the time required to sample one MCMC step per run. This is computed as `(time taken for iteration 0)/((number of initial frames)*(number of MCMC steps per frame))`
+
+Step 1  in the `Run command` above, _i.e._ _One `NestOR run` generates these plots: 
+
+1. **Evidence**: The plot (`*_params_evidence_errorbarplot.png`) shows the mean values of evidence for all the candidate representations along with errorbars showing the standard error on the mean.
+2. **MCMC per-step time**: The plot (`*_params_persteptime.png`) shows the time required to sample one MCMC step per run. This is computed as `(time taken for iteration 0)/((number of initial frames)*(number of MCMC steps per frame))`
+
+Step 2 in the `Run command` above generates this additional plot. 
+
+3. **Evidence and MCMC per-step time per representation** : The plot (`*sterr_evi_and_proctime.png`) compares evidences and their sampling efficiency across representations.
 
 ### Output YAML file
+
+This file is generated upon completion of the `NestOR run` from step 1 in the `Run command` above. 
 
 **Evidence related:**  
 - log_estimated_evidence: `float`  
