@@ -41,7 +41,7 @@ One can also compare results from `NestOR runs` with different parameter setting
 
 ### Plots
 
-Step 1  in the `Run command` above, _i.e._ _One `NestOR run` generates these plots: 
+Step 1  in the `Run command` above, _i.e._ _One_ `NestOR run` generates these plots: 
 
 1. **Evidence**: The plot (`*_params_evidence_errorbarplot.png`) shows the mean values of evidence for all the candidate representations along with errorbars showing the standard error on the mean.
 2. **MCMC per-step time**: The plot (`*_params_persteptime.png`) shows the time required to sample one MCMC step per run. This is computed as `(time taken for iteration 0)/((number of initial frames)*(number of MCMC steps per frame))`
