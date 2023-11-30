@@ -34,7 +34,7 @@ where, `path` refers to the parent_dir in NestOR params file and `name` refers t
 
 **Note**
 
-_One `NestOR run` corresponds to the set of all nested sampling runs for all candidate representations._
+_One_ `NestOR run` corresponds to the set of all nested sampling runs for all candidate representations._
 One can also compare results from `NestOR runs` with different parameter settings by running `python utils/compare_runs_v2_w_pyplot.py comparison_title run_set1 run_set2 ...` where comparison_title is the title for the runs to be compared, run_set1 and run_set2 are the NestOR runs to be compared.
 
 ## Outputs 
