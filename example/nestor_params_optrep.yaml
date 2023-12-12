@@ -1,6 +1,6 @@
 
 # Please provide absolute paths for imp_path and modeling_script_path keys
-imp_path: '<<<Path to IMP>>>'                       # Path to IMP installation
+imp_path: '<<<Path to IMP>>>'                       # Path to IMP installation (e.g. imp/build/setup_environment.sh)
 modeling_script_path: 'example/nude_modeling.py'    # Path to the modeling script
 parent_dir: 'example/runs/'                         # Path to store the outputs
 
