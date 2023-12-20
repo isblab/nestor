@@ -10,7 +10,7 @@
   
 ### **NestOR installation:**  
 1. Compile IMP from the souce code to your choice of directory
-2. Replace the `macros.py` in `imp/modules/pmi/pyext/src/` with the macros.py in the current repository. Make sure the file is named `macros.py` in the destination directory. 
+2. Replace the `macros.py` in `imp/modules/pmi/pyext/src/` with the `macros.py` in the current repository. Make sure the file is named `macros.py` in the destination directory. 
 3. Similarly, replace the restraints directory in `imp/modules/pmi/pyext/src/` with the restraints directory in the present repository.
 
 ## **Running NestOR:**
@@ -19,8 +19,10 @@
 
 (See also `example/`)
 1. Split the crosslinks into sampling and evidence calculation subsets using `python utils/xl_datasplitter.py {path}` where, path refers to the path of the target crosslinking file.
-2. Make the modeling script in the form as shown in the `example/modeling.py`. One will also need to make separate topology files for different candidate representations.
-3. Set appropriate parameters in the `nestor_params.yaml` file. 
+2. Make the modeling script in the form as shown in the `example/modeling.py`. One will also need to make separate topology files for different candidate representations.  
+   _* Make sure that the restraints that are to be used to inform the likelihood have `weight=0`, and these are added to a separate list that is passed to the replica exchange macro as `nester_restraints` argument_.  
+   _* Ensure the modeling script looks similar to the one in `example/`. Specifically, ensure that the modeling instructions are enclosed in a function that is called so that the terminal stdout of the modeling is not returned to the terminal._
+4. Set appropriate parameters in the `nestor_params.yaml` file. 
 
 ### Run command
 
