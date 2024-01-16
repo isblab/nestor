@@ -93,7 +93,7 @@ def plotter(results: dict):
     plt.figure(1)
     for resolution in results:
         if not resolution[4:] in resolutions:
-            resolutions.append(int(resolution[4:]))
+            resolutions.append(resolution[4:])
 
         log_z = []
         proc_time = []
@@ -110,7 +110,7 @@ def plotter(results: dict):
         avg_logz = np.mean(log_z)
         stderr_logz = np.std(log_z) / math.sqrt(len(log_z))
         plt.errorbar(
-            int(resolution[4:]), avg_logz, yerr=stderr_logz, fmt="o", c="dodgerblue"
+            resolution[4:], avg_logz, yerr=stderr_logz, fmt="o", c="dodgerblue"
         )
 
     plt.xlabel("Resolutions")

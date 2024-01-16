@@ -17,7 +17,7 @@ representations: list = []
 log_evi_mean_sterr: list = []
 proctime_mean_sterr: list = []
 for k in nestor_results:
-    representations.append(int(k[-2:]))
+    representations.append(k.split("_")[-1])
     log_evi, proctime = [], []
 
     for k1 in nestor_results[k]:
