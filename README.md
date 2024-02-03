@@ -20,8 +20,8 @@
 (See also `example/`)
 1. Split the crosslinks into sampling and evidence calculation subsets using `python utils/xl_datasplitter.py {path}` where, path refers to the path of the target crosslinking file.
 2. Make the modeling script in the form as shown in the `example/modeling.py`. One will also need to make separate topology files for different candidate representations.  
-   _* Make sure that the restraints that are to be used to inform the likelihood have `weight=0`, and these are added to a separate list that is passed to the replica exchange macro as `nester_restraints` argument_.  
-   _* Ensure the modeling script looks similar to the one in `example/`. Specifically, ensure that the modeling instructions are enclosed in a function that is called so that the terminal stdout of the modeling is not returned to the terminal._
+   _* Make sure that the restraints that are to be used to inform the likelihood have `weight=0`, and these are added to a separate list that is passed to the replica exchange macro as `nestor_restraints` argument_.  
+   _* Ensure the modeling script looks similar to the one in `example/`. Specifically, ensure that the modeling instructions are enclosed in a function that is called so that the terminal stdout of the modeling is not returned to the terminal. One can use `contextlib` as shown in the example._
 4. Set appropriate parameters in the `nestor_params.yaml` file. 
 
 ### Run command
