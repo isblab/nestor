@@ -3,7 +3,8 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10360718.svg)](https://doi.org/10.5281/zenodo.10360718) 
 
 # **NestOR: Nested Sampling-based Optimization of Representation for Integrative Structural Modeling**
-<img width="182" alt="nestor" src="https://github.com/isblab/nestor/assets/8314735/5279c385-aef2-4631-8757-659117d331bb">
+
+![graphical_abstract_nestor](https://github.com/isblab/nestor/assets/8314735/74b4aa65-1f64-45e1-89ac-5bcb69ecb27d)
 
 ## **Installation:**
 ### **Dependencies:**  
