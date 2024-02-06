@@ -122,7 +122,7 @@ def plotter(results: dict):
     )
 
     plt.figure(2)
-    # resolutions, mean_proc_time = zip(*sorted(zip(resolutions, mean_proc_time)))
+    resolutions, mean_proc_time = zip(*sorted(zip(resolutions, mean_proc_time),key=lambda x: x[0]))
     plt.scatter(resolutions, mean_proc_time, c="C2", marker="o")
     plt.xlabel("Resolutions")
     plt.ylabel("Nested sampling process time")
@@ -131,7 +131,7 @@ def plotter(results: dict):
     )
 
     plt.figure(3)
-    # resolutions, mean_per_step_time = zip(*sorted(zip(resolutions, mean_per_step_time)))
+    resolutions, mean_per_step_time = zip(*sorted(zip(resolutions, mean_per_step_time),key=lambda x: x[0])) 
     plt.scatter(resolutions, mean_per_step_time, c="C2", marker="o")
     plt.xlabel("Resolutions")
     plt.ylabel("Mean time per MCMC step")
