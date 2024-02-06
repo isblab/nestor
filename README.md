@@ -1,5 +1,7 @@
 [![PubMed](https://salilab.org/imp-systems/static/images/pubmed.png)](https://pubmed.ncbi.nlm.nih.gov/xyz/)     #TODO: Replace xyz with PubMed ID
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10360718.svg)](https://doi.org/10.5281/zenodo.10360718) 
+
 # **NestOR: Nested Sampling-based Optimization of Representation for Integrative Structural Modeling**
 <img width="182" alt="nestor" src="https://github.com/isblab/nestor/assets/8314735/5279c385-aef2-4631-8757-659117d331bb">
 
