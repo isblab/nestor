@@ -122,7 +122,9 @@ def plotter(results: dict):
     )
 
     plt.figure(2)
-    resolutions, mean_proc_time = zip(*sorted(zip(resolutions, mean_proc_time),key=lambda x: x[0]))
+    resolutions, mean_proc_time = zip(
+        *sorted(zip(resolutions, mean_proc_time), key=lambda x: x[0])
+    )
     plt.scatter(resolutions, mean_proc_time, c="C2", marker="o")
     plt.xlabel("Resolutions")
     plt.ylabel("Nested sampling process time")
@@ -131,7 +133,9 @@ def plotter(results: dict):
     )
 
     plt.figure(3)
-    resolutions, mean_per_step_time = zip(*sorted(zip(resolutions, mean_per_step_time),key=lambda x: x[0])) 
+    resolutions, mean_per_step_time = zip(
+        *sorted(zip(resolutions, mean_per_step_time), key=lambda x: x[0])
+    )
     plt.scatter(resolutions, mean_per_step_time, c="C2", marker="o")
     plt.xlabel("Resolutions")
     plt.ylabel("Mean time per MCMC step")
@@ -144,138 +148,140 @@ def plotter(results: dict):
 ###################### Main #######################
 ###################################################
 
-if "skip_calc" in sys.argv:
-    with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as outf:
-        results = yaml.safe_load(outf)
-        plotter(results)
-        exit()
+if not "skip_calc" in sys.argv:
+    torun = get_all_toruns(h_params)
+    results = {}
 
-torun = get_all_toruns(h_params)
-results = {}
+    processes = {"Dummy": "Dummy"}
+    completed_runs = []
+    while len(list(processes.keys())) > 0:
+        if "Dummy" in processes.keys():
+            processes.pop("Dummy")
 
-processes = {"Dummy": "Dummy"}
-completed_runs = []
-while len(list(processes.keys())) > 0:
-    if "Dummy" in processes.keys():
-        processes.pop("Dummy")
+        if len(torun) > 0:
+            curr_iter_torun = [run for run in torun]
+            for res, run_id in curr_iter_torun:
+                if len(processes) < max_allowed_runs:
+                    if not os.path.isdir(res):
+                        os.mkdir(res)
 
-    if len(torun) > 0:
-        curr_iter_torun = [run for run in torun]
-        for res, run_id in curr_iter_torun:
-            if len(processes) < max_allowed_runs:
-                if not os.path.isdir(res):
-                    os.mkdir(res)
+                    os.chdir(res)
+                    os.mkdir(f"run_{run_id}")
+                    os.chdir(f"run_{run_id}")
 
-                os.chdir(res)
-                os.mkdir(f"run_{run_id}")
-                os.chdir(f"run_{run_id}")
+                    if topology:
+                        topf = f"topology{res.split('/')[-1].split('_')[-1]}.txt"
+                    else:
+                        topf = res.split("/")[-1].split("_")[-1]
 
-                if topology:
-                    topf = f"topology{res.split('/')[-1].split('_')[-1]}.txt"
+                    run_cmd = [
+                        "mpirun",
+                        "-n",
+                        str(h_params["num_cores"]),
+                        h_params["imp_path"],
+                        "python",
+                        h_params["modeling_script_path"],
+                        str(run_id),
+                        topf,
+                        h_param_file,
+                    ]
+
+                    p = subprocess.Popen(
+                        run_cmd,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                    )
+                    processes[(res, run_id)] = p
+                    torun.remove((res, run_id))
+                    print(f"Launched: {res.split('/')[-1]}, run_{run_id}")
+
                 else:
-                    topf = res.split("/")[-1].split("_")[-1]
+                    print("Waiting for free threads...")
 
-                run_cmd = [
-                    "mpirun",
-                    "-n",
-                    str(h_params["num_cores"]),
-                    h_params["imp_path"],
-                    "python",
-                    h_params["modeling_script_path"],
-                    str(run_id),
-                    topf,
-                    h_param_file,
-                ]
+        waiting = True
+        while waiting:
+            for _, p in processes.items():
+                if p.poll() is not None:
+                    waiting = False
+                # print(p.poll())
 
-                p = subprocess.Popen(
-                    run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-                )
-                processes[(res, run_id)] = p
-                torun.remove((res, run_id))
-                print(f"Launched: {res.split('/')[-1]}, run_{run_id}")
+        (
+            processes,
+            curr_faulty_runs,
+            successful_runs,
+        ) = get_curr_processes_and_terminated_runs(processes)
 
+        for proc in successful_runs:
+            completed_runs.append(proc)
+        if len(processes) == 0:
+            break
+
+        if len(curr_faulty_runs) != 0:
+            for fr, p in curr_faulty_runs:
+                if p.returncode == 11:
+                    print(f"Will relaunch ({fr[0].split('/')[-1]}, run_{fr[1]})")
+                    torun.append(fr)
+                elif p.returncode == 12:
+                    print(
+                        f"Terminated: {fr[0].split('/')[-1]}, run_{fr[1]} with exit code: {p.returncode}"
+                    )
+                    print(
+                        f"{fr[0].split('/')[-1]}, run_{fr[1]} ran out of maximum allowed iterations before converging. Will not relaunch it..."
+                    )
+
+    print(f"Waiting for {len(processes.keys())} processes to terminate...")
+
+    while len(processes) > 0:
+        final_waiting = True
+        while final_waiting:
+            for _, p in processes.items():
+                if p.poll() is not None:
+                    final_waiting = False
+
+        (
+            processes,
+            curr_faulty_runs,
+            successful_runs,
+        ) = get_curr_processes_and_terminated_runs(processes)
+
+        for proc in successful_runs:
+            completed_runs.append(proc)
+
+    ###################################################
+    ############## Preparing the output ###############
+    ###################################################
+
+    print("Performing housekeeping tasks")
+
+    for proc in completed_runs:
+        run_deets, p = proc
+        if p.returncode == 0:
+            out, _ = p.communicate()
+
+            result = literal_eval(out[4:])
+
+            if run_deets[0].split("/")[-1] not in results.keys():
+                results[f"{run_deets[0].split('/')[-1]}"] = {
+                    f"run_{run_deets[1]}": result
+                }
             else:
-                print("Waiting for free threads...")
+                results[f"{run_deets[0].split('/')[-1]}"][
+                    f"run_{run_deets[1]}"
+                ] = result
 
-    waiting = True
-    while waiting:
-        for _, p in processes.items():
-            if p.poll() is not None:
-                waiting = False
-            # print(p.poll())
+    if "nestor_output.yaml" in os.listdir(parent_path):
+        with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as inf:
+            old_results = yaml.safe_load(inf)
+            merge(results, old_results)
 
-    (
-        processes,
-        curr_faulty_runs,
-        successful_runs,
-    ) = get_curr_processes_and_terminated_runs(processes)
-
-    for proc in successful_runs:
-        completed_runs.append(proc)
-    if len(processes) == 0:
-        break
-
-    if len(curr_faulty_runs) != 0:
-        for fr, p in curr_faulty_runs:
-            if p.returncode == 11:
-                print(f"Will relaunch ({fr[0].split('/')[-1]}, run_{fr[1]})")
-                torun.append(fr)
-            elif p.returncode == 12:
-                print(
-                    f"Terminated: {fr[0].split('/')[-1]}, run_{fr[1]} with exit code: {p.returncode}"
-                )
-                print(
-                    f"{fr[0].split('/')[-1]}, run_{fr[1]} ran out of maximum allowed iterations before converging. Will not relaunch it..."
-                )
+    with open(f"{parent_path}/nestor_output.yaml", "w") as outf:
+        yaml.dump(results, outf)
 
 
-print(f"Waiting for {len(processes.keys())} processes to terminate...")
-
-while len(processes) > 0:
-    final_waiting = True
-    while final_waiting:
-        for _, p in processes.items():
-            if p.poll() is not None:
-                final_waiting = False
-
-    (
-        processes,
-        curr_faulty_runs,
-        successful_runs,
-    ) = get_curr_processes_and_terminated_runs(processes)
-
-    for proc in successful_runs:
-        completed_runs.append(proc)
-
-
-###################################################
-############## Preparing the output ###############
-###################################################
-
-print("Performing housekeeping tasks")
-
-for proc in completed_runs:
-    run_deets, p = proc
-    if p.returncode == 0:
-        out, _ = p.communicate()
-
-        result = literal_eval(out[4:])
-
-        if run_deets[0].split("/")[-1] not in results.keys():
-            results[f"{run_deets[0].split('/')[-1]}"] = {f"run_{run_deets[1]}": result}
-        else:
-            results[f"{run_deets[0].split('/')[-1]}"][f"run_{run_deets[1]}"] = result
-
-if "nestor_output.yaml" in os.listdir(parent_path):
-    with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as inf:
-        old_results = yaml.safe_load(inf)
-        merge(results, old_results)
-
-with open(f"{parent_path}/nestor_output.yaml", "w") as outf:
-    yaml.dump(results, outf)
-
-if len(list(results.keys())) > 0:
-    plotter(results)
-else:
-    print("\nNone of the runs was successful...!")
-print("Done...!\n\n")
+with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as outf:
+    if len(list(results.keys())) > 0:
+        plotter(results)
+    else:
+        print("\nNone of the runs was successful...!")
+    print("Done...!\n\n")
