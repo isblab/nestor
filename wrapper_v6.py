@@ -122,9 +122,9 @@ def plotter(results: dict):
     )
 
     plt.figure(2)
-    resolutions, mean_proc_time = zip(
-        *sorted(zip(resolutions, mean_proc_time), key=lambda x: x[0])
-    )
+    # resolutions, mean_proc_time = zip(
+    #     *sorted(zip(resolutions, mean_proc_time), key=lambda x: x[0])
+    # )
     plt.scatter(resolutions, mean_proc_time, c="C2", marker="o")
     plt.xlabel("Resolutions")
     plt.ylabel("Nested sampling process time")
@@ -133,9 +133,9 @@ def plotter(results: dict):
     )
 
     plt.figure(3)
-    resolutions, mean_per_step_time = zip(
-        *sorted(zip(resolutions, mean_per_step_time), key=lambda x: x[0])
-    )
+    # resolutions, mean_per_step_time = zip(
+    #     *sorted(zip(resolutions, mean_per_step_time), key=lambda x: x[0])
+    # )
     plt.scatter(resolutions, mean_per_step_time, c="C2", marker="o")
     plt.xlabel("Resolutions")
     plt.ylabel("Mean time per MCMC step")
@@ -280,6 +280,7 @@ if not "skip_calc" in sys.argv:
 
 
 with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as outf:
+    results=yaml.safe_load(outf)
     if len(list(results.keys())) > 0:
         plotter(results)
     else:
