@@ -1,0 +1,19 @@
+
+# Please provide absolute paths for imp_path and modeling_script_path keys
+imp_path: '<<<Path to IMP>>>'                       # Path to IMP installation (e.g. imp/build/setup_environment.sh)
+modeling_script_path: 'example/nude_modeling.py'    # Path to the modeling script
+parent_dir: 'example/runs/'                         # Path to store the outputs
+
+# Wrapper params
+num_runs: 5                                         # Number of runs to be launched per candidate representation
+num_cores: 4                                        # Number of replicas to be used for replica exchange MCMC sampling
+trial_name: 'optrep_params'                         # Name to be assigned to the NestOR run
+resolutions: ['01','05','10','20','30','50']        # Candidate representations to be tested. This will be used as topology{x}.txt if using the topology file, else will be passed directly as an argument to the modelings script
+
+# NestOR params
+max_usable_threads: 120                             # Maximum number of usable computing cores
+max_nestor_iter: 15_000                             # Maximum number of allowed iterations. Remember to keep it a very high number to allow sampling convergence
+num_init_frames: 50                                 # Number of initial (live) samples to be drawn
+num_frames_per_iter: 5                              # Number of IMP replica exchange sampling frames to be sampled per iteration
+max_plateau_hits: 10                                # These many consecutive iterations need to be from a likelihood plateau for sampling to converge
+max_failed_iterations: 50                           # These many consecutive iterations need to fail to generate a model with likelihood better than the worst likelihood in the current iteration.
