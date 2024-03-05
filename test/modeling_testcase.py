@@ -1,5 +1,4 @@
 import os, sys
-import numpy as np
 import yaml
 import IMP
 import ihm.cross_linkers
@@ -14,9 +13,9 @@ import IMP.pmi.macros
 import contextlib
 
 
-def prepare_system():
+def prepare_system(topology_file, h_param_file):
     """Set the system up for Nested Sampling runs"""
-    topology_file = "../../../input/topology.txt"
+
     mdl = IMP.Model()
     t = IMP.pmi.topology.TopologyReader(topology_file)
     bs = IMP.pmi.macros.BuildSystem(mdl)
@@ -81,7 +80,7 @@ def prepare_system():
         replica_exchange_minimum_temperature=1.0,
         replica_exchange_maximum_temperature=2.4,
         monte_carlo_sample_objects=dof.get_movers(),  # pass all objects to be moved ( almost always dof.get_movers() )
-        global_output_directory="ns_test_outputs/",  # The output directory for this sampling run.
+        global_output_directory=run_output_dir,  # The output directory for this sampling run.
         monte_carlo_steps=10,  # Number of MC steps between writing frames
         number_of_best_scoring_models=0,  # set >0 to store best PDB files (but this is slow)
         number_of_frames=0,  # Total number of frames to run / write to the RMF file.
@@ -90,16 +89,21 @@ def prepare_system():
     ns = nestor.NestedSampling(
         rex_macro=rex,
         nestor_restraints=nestor_restraints,
-        h_param_file="../../../input/nestor_params_optrep.yaml",
+        h_param_file=h_param_file,
         exit_code=exit_code,
     )
     return ns
 
 
+dat_dir = "/home/shreyas/Projects/cgopt/imp_integration_stuff/cgimp/imp/modules/nestor/test/input/"
+run_output_dir = "run_" + sys.argv[1]
+topology_file = dat_dir + sys.argv[2]
+h_param_file = sys.argv[3]
+
 with open("errors.log", "w") as errf:
     with contextlib.redirect_stdout(None):
         with contextlib.redirect_stderr(errf):
-            ns = prepare_system()
+            ns = prepare_system(topology_file, h_param_file)
             ns_output, ns_exitcode = ns.execute_nested_sampling2()
 
 if ns_output is not None:

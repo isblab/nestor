@@ -12,7 +12,7 @@ resolutions: ['01','05','10','20','30','50']        # Candidate representations 
 
 # NestOR params
 max_usable_threads: 120                             # Maximum number of usable computing cores
-max_nester_iter: 15_000                             # Maximum number of allowed iterations. Remember to keep it a very high number to allow sampling convergence
+max_nestor_iter: 15_000                             # Maximum number of allowed iterations. Remember to keep it a very high number to allow sampling convergence
 num_init_frames: 50                                 # Number of initial (live) samples to be drawn
 num_frames_per_iter: 5                              # Number of IMP replica exchange sampling frames to be sampled per iteration
 max_plateau_hits: 10                                # These many consecutive iterations need to be from a likelihood plateau for sampling to converge

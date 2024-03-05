@@ -9,42 +9,13 @@ from mergedeep import merge
 from ast import literal_eval
 from matplotlib import pyplot as plt
 
-###################################################
-###################### Init #######################
-###################################################
-
-h_param_file = sys.argv[1]
-topology = True
-
-if "manual" in sys.argv:
-    topology = False
-
-with open(h_param_file, "r") as paramf:
-    h_params = yaml.safe_load(paramf)  # type: ignore
-
-max_allowed_runs = h_params["max_usable_threads"] // h_params["num_cores"]
-parent_path = h_params["parent_dir"]
-
-if not os.path.isdir(parent_path):
-    os.mkdir(parent_path)
-
-target_runs = str(h_params["num_runs"])
-if "-" not in target_runs:
-    target_runs = range(0, int(target_runs))
-else:
-    target_runs = range(int(target_runs.split("-")[0]), int(target_runs.split("-")[1]))
-
-imp_path = " "
-if "imp_path" in h_params.keys():
-    imp_path = h_params["imp_path"]
-
 
 ###################################################
 #################### Functions ####################
 ###################################################
 
 
-def get_all_toruns(h_params):
+def get_all_toruns(h_params, target_runs):
     parent_dir = h_params["parent_dir"]
     runs = []
     for res in h_params["resolutions"]:
@@ -143,12 +114,26 @@ def plotter(results: dict):
     )
 
 
-###################################################
-###################### Main #######################
-###################################################
+def main(h_param_file, topology=True):
+    with open(h_param_file, "r") as paramf:
+        h_params = yaml.safe_load(paramf)
 
-if not "skip_calc" in sys.argv:
-    torun = get_all_toruns(h_params)
+    max_allowed_runs = h_params["max_usable_threads"] // h_params["num_cores"]
+    parent_path = h_params["parent_dir"]
+
+    if not os.path.isdir(parent_path):
+        os.mkdir(parent_path)
+
+    target_runs = str(h_params["num_runs"])
+    if "-" not in target_runs:
+        target_runs = range(0, int(target_runs))
+    else:
+        target_runs = range(
+            int(target_runs.split("-")[0]), int(target_runs.split("-")[1])
+        )
+
+    torun = get_all_toruns(h_params, target_runs)
+
     results = {}
 
     processes = {"Dummy": "Dummy"}
@@ -247,9 +232,7 @@ if not "skip_calc" in sys.argv:
         for proc in successful_runs:
             completed_runs.append(proc)
 
-    ###################################################
     ############## Preparing the output ###############
-    ###################################################
 
     print("Performing housekeeping tasks")
 
@@ -269,6 +252,11 @@ if not "skip_calc" in sys.argv:
                     f"run_{run_deets[1]}"
                 ] = result
 
+        else:
+            _, err = p.communicate()
+            print(err)
+            exit()
+
     if "nestor_output.yaml" in os.listdir(parent_path):
         with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as inf:
             old_results = yaml.safe_load(inf)
@@ -278,10 +266,31 @@ if not "skip_calc" in sys.argv:
         yaml.dump(results, outf)
 
 
-with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as outf:
-    results = yaml.safe_load(outf)
-    if len(list(results.keys())) > 0:
-        plotter(results)
+###################################################
+###################### Main #######################
+###################################################
+
+if __name__ == "__main__":
+    h_param_file = sys.argv[1]
+
+    if sys.argv[2] == "manual":
+        use_topology = False
+    elif sys.argv[2] == "topology":
+        use_topology = True
+
+    if sys.argv[3] != "skip_calc":
+        main(h_param_file, use_topology)
+
     else:
-        print("\nNone of the runs was successful...!")
-    print("Done...!\n\n")
+        with open(h_param_file, "r") as h_paramf:
+            h_params = yaml.safe_load(h_paramf)
+        with open(
+            os.path.join(h_params["parent_path"], "nestor_output.yaml"), "r"
+        ) as outf:
+            results = yaml.safe_load(outf)
+
+        if len(list(results.keys())) > 0:
+            plotter(results)
+        else:
+            print("\nNone of the runs was successful...!")
+        print("Done...!\n\n")

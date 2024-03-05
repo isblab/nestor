@@ -1,5 +1,6 @@
 Here is an example describing the use of NestOR to compare six different coarse-grained representations of the Nucleosome Deacetylase (NuDe) sub-complex of the Nucleosome Remodeling and Deacetylase (NuRD) complex. The `input` and `nude_modeling.py` are adapted from the [Integrative model of the NuRD subcomplexes](https://github.com/isblab/nurd) repository.
 
+**NOTE:** _Prior to running the example, please download EM map from EMD22094, extract it, rename it as `emd_22904.mrc` and place it in `input/gmm/` directory_
 ## Description of the example files
 The `example/input` comprises of the fasta sequences (`example/input/fasta`), PDB structures (`example/input/pdb`), crosslinking mass spectrometry data (`example/input/xlms`) and an EM map along with the corresponding GMM representation (`example/input/gmm`). Each of the target crosslink file from `example/input/xlms/original_xl_data` is split into `sampling_` and `evicalc_` files as described below.
 

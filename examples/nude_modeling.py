@@ -11,16 +11,17 @@ import IMP.rmf
 import IMP.pmi
 import IMP.pmi.io
 import IMP.pmi.io.crosslink
+import IMP.pmi.tools
 import IMP.pmi.topology
 import IMP.pmi.macros
 import IMP.pmi.restraints
 import IMP.pmi.restraints.basic
 import IMP.pmi.restraints.stereochemistry
-
-# import IMP.pmi.restraints.saxs
+import ihm.cross_linkers
 import IMP.pmi.restraints.crosslinking
 import IMP.pmi.restraints.em
 import IMP.pmi.dof
+from IMP.nestor.nestor import NestedSampling
 import IMP.atom
 import contextlib
 
@@ -29,7 +30,7 @@ import os
 import sys
 
 
-dat_dir = "example/input"
+dat_dir = "/home/shreyas/Projects/cgopt/imp_integration_stuff/cgimp/imp/modules/nestor/examples/input/"
 run_output_dir = "run_" + sys.argv[1]
 topology_file = dat_dir + sys.argv[2]
 h_param_file = sys.argv[3]
@@ -39,15 +40,15 @@ max_shuffle_set2 = 50
 rex_max_temp = 2.4
 
 # Identify data files
-sampling_adh_xl_data = dat_dir + "/xlms/sampling_adh_master.dat"
-sampling_bs3dss_xl_data = dat_dir + "/xlms/sampling_bs3dss_master.dat"
-sampling_dmtmm_xl_data = dat_dir + "/xlms/sampling_dmtmm_master.dat"
+sampling_adh_xl_data = dat_dir + "xlms/sampling_filtered_adh.dat"
+sampling_bs3dss_xl_data = dat_dir + "xlms/sampling_filtered_bs3dss.dat"
+sampling_dmtmm_xl_data = dat_dir + "xlms/sampling_filtered_dmtmm.dat"
 
-evi_adh_xl_data = dat_dir + "/xlms/evicalc_adh_master.dat"
-evi_bs3dss_xl_data = dat_dir + "/xlms/evicalc_bs3dss_master.dat"
-evi_dmtmm_xl_data = dat_dir + "/xlms/evicalc_dmtmm_master.dat"
+evi_adh_xl_data = dat_dir + "/xlms/evicalc_filtered_adh.dat"
+evi_bs3dss_xl_data = dat_dir + "/xlms/evicalc_filtered_adh.dat"
+evi_dmtmm_xl_data = dat_dir + "/xlms/evicalc_filtered_adh.dat"
 
-gmm_data = dat_dir + "/gmm/emd_22904.gmm.40.txt"
+gmm_data = dat_dir + "gmm/emd_22904.gmm.40.txt"
 # Restraint weights
 intra_xl_weight = 1.0
 inter_xl_weight = 10.0
@@ -131,7 +132,7 @@ def modeling(output_dir, topology_file, h_param_file):
     #####################################################
 
     output_objects = []
-    nester_restraints = []
+    nestor_restraints = []
 
     # -----------------------------
     # CONNECTIVITY RESTRAINT
@@ -173,6 +174,7 @@ def modeling(output_dir, topology_file, h_param_file):
             slope=0.0001,  # This adds a linear term to the scoring function
             label="adh",  #   to bias crosslinks towards each other
             weight=xl_weight,
+            linker=ihm.cross_linkers.edc,
         )
     )  # Scaling factor for the restraint score.
 
@@ -189,6 +191,7 @@ def modeling(output_dir, topology_file, h_param_file):
             slope=0.0001,  # This adds a linear term to the scoring function
             label="bs3dss",  #   to bias crosslinks towards each other
             weight=xl_weight,
+            linker=ihm.cross_linkers.bs3,
         )
     )  # Scaling factor for the restraint score.
 
@@ -205,6 +208,7 @@ def modeling(output_dir, topology_file, h_param_file):
             slope=0.0001,  # This adds a linear term to the scoring function
             label="dmtmm",  #   to bias crosslinks towards each other
             weight=xl_weight,
+            linker=ihm.cross_linkers.dsso,
         )
     )  # Scaling factor for the restraint score.
 
@@ -229,6 +233,7 @@ def modeling(output_dir, topology_file, h_param_file):
             slope=0.0001,  # This adds a linear term to the scoring function
             label="adh",  #   to bias crosslinks towards each other
             weight=0,
+            linker=ihm.cross_linkers.edc,
         )
     )  # Scaling factor for the restraint score.
 
@@ -245,6 +250,7 @@ def modeling(output_dir, topology_file, h_param_file):
             slope=0.0001,  # This adds a linear term to the scoring function
             label="bs3dss",  #   to bias crosslinks towards each other
             weight=0,
+            linker=ihm.cross_linkers.bs3,
         )
     )  # Scaling factor for the restraint score.
 
@@ -261,6 +267,7 @@ def modeling(output_dir, topology_file, h_param_file):
             slope=0.0001,  # This adds a linear term to the scoring function
             label="dmtmm",  #   to bias crosslinks towards each other
             weight=0,
+            linker=ihm.cross_linkers.dsso,
         )
     )  # Scaling factor for the restraint score.
 
@@ -268,9 +275,9 @@ def modeling(output_dir, topology_file, h_param_file):
     output_objects.append(xlr_bs3dss_evicalc)
     output_objects.append(xlr_dmtmm_evicalc)
 
-    nester_restraints.append(xlr_adh_evicalc)
-    nester_restraints.append(xlr_bs3dss_evicalc)
-    nester_restraints.append(xlr_dmtmm_evicalc)
+    nestor_restraints.append(xlr_adh_evicalc)
+    nestor_restraints.append(xlr_bs3dss_evicalc)
+    nestor_restraints.append(xlr_dmtmm_evicalc)
 
     print("Cross-linking restraint applied")
 
@@ -289,7 +296,7 @@ def modeling(output_dir, topology_file, h_param_file):
     )  # the scaling factor for the EM score
 
     output_objects.append(emr)
-    nester_restraints.append(emr)
+    nestor_restraints.append(emr)
     print("EM Restraint Applied")
 
     #####################################################
@@ -333,14 +340,9 @@ def modeling(output_dir, topology_file, h_param_file):
 
     print("Replica Exchange Maximum Temperature : " + str(rex_max_temp))
 
-    rex = IMP.pmi.macros.ReplicaExchange0(
+    rex = IMP.pmi.macros.ReplicaExchange(
         mdl,
         root_hier=root_hier,  # pass the root hierarchy
-        crosslink_restraints=[
-            xlr_adh_sampling,
-            xlr_bs3dss_sampling,
-            xlr_dmtmm_sampling,
-        ],
         # This allows viewing the crosslinks in Chimera. Also, there is not inter-protein ADH crosslink available. Hence it is not mentioned in this list
         monte_carlo_temperature=1.0,
         replica_exchange_minimum_temperature=1.0,
@@ -351,12 +353,12 @@ def modeling(output_dir, topology_file, h_param_file):
         monte_carlo_steps=10,  # Number of MC steps between writing frames
         number_of_best_scoring_models=0,  # set >0 to store best PDB files (but this is slow)
         number_of_frames=0,  # Total number of frames to run / write to the RMF file.
-        use_nester=True,
+        use_nestor=True,
     )
 
-    ns = IMP.pmi.macros.NestedSampling(
+    ns = NestedSampling(
         rex_macro=rex,
-        nester_restraints=nester_restraints,
+        nestor_restraints=nestor_restraints,
         h_param_file=h_param_file,
         exit_code=exit_code,
     )
@@ -371,10 +373,6 @@ with open("errors.log", "w") as errf:
             nested_sampling_output, nested_sampling_exitcode = modeling(
                 run_output_dir, topology_file, h_param_file
             )
-
-# nested_sampling_output, nested_sampling_exitcode = modeling(
-#                 run_output_dir, topology_file, h_param_file
-#             )
 
 
 if nested_sampling_output is not None:
