@@ -5,4 +5,3 @@ test/runs
 test/excluded.None.xl.db
 test/included.None.xl.db
 test/missing.None.xl.db
-.github/workflows/pytest.yml
