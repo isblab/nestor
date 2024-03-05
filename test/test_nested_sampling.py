@@ -17,10 +17,9 @@ import subprocess
 
 
 class Tests(IMP.test.TestCase):
-    def prepare_system(self):
+    def prepare_system(self, topology_fname="topology5.txt"):
         """Set the system up for Nested Sampling runs"""
-        topology_file = self.get_input_file_name("topology.txt")
-        print(topology_file)
+        topology_file = self.get_input_file_name(topology_fname)
         mdl = IMP.Model()
         t = IMP.pmi.topology.TopologyReader(topology_file)
         bs = IMP.pmi.macros.BuildSystem(mdl)
@@ -105,7 +104,7 @@ class Tests(IMP.test.TestCase):
         """Was used to get the preliminary output for test_reproducibility() function. It is not used anymore."""
         results = {}
         for i in range(10):
-            ns = self.prepare_system()
+            ns = self.prepare_system(topology_fname="topology5.txt")
             ns_output, _ = ns.execute_nested_sampling2()
             results[i] = ns_output
         with open(
@@ -116,7 +115,7 @@ class Tests(IMP.test.TestCase):
 
     def test_ns_initial_sampling(self):
         """Test initial sampling and likelihood parsing"""
-        ns = self.prepare_system()
+        ns = self.prepare_system("topology5.txt")
         ns.sample_initial_frames()
         likelihoods = ns.parse_likelihoods(iteration=0)
 
@@ -135,7 +134,7 @@ class Tests(IMP.test.TestCase):
 
             new_results = []
             for _ in range(10):
-                ns = self.prepare_system()
+                ns = self.prepare_system("topology5.txt")
                 ns_output, _ = ns.execute_nested_sampling2()
                 new_results.append(ns_output["log_estimated_evidence"])
 
@@ -154,11 +153,12 @@ class Tests(IMP.test.TestCase):
         setA = []
         setB = []
         for _ in range(10):
-            ns = self.prepare_system()
-            ns_outputA, _ = ns.execute_nested_sampling2()
-
+            nsA = self.prepare_system("topology5.txt")
+            ns_outputA, _ = nsA.execute_nested_sampling2()
             setA.append(ns_outputA["log_estimated_evidence"])
-            ns_outputB, _ = ns.execute_nested_sampling2()
+
+            nsB = self.prepare_system("topology5.txt")
+            ns_outputB, _ = nsB.execute_nested_sampling2()
             setB.append(ns_outputB["log_estimated_evidence"])
 
         setA = np.array(setA)
@@ -176,7 +176,7 @@ class Tests(IMP.test.TestCase):
         self.assertTrue(lower_bound <= meanB <= upper_bound)
 
     def test_individual_run_output_file_creation(self):
-        ns = self.prepare_system()
+        ns = self.prepare_system("topology5.txt")
         ns.execute_nested_sampling2()
         expected_files = [
             "live_loglixi.png",

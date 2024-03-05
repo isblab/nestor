@@ -2,3 +2,7 @@ examples/input/gmm/emd_22904.mrc
 examples/runs
 examples/nestor_params_optrep_test.yaml
 test/runs
+test/excluded.None.xl.db
+test/included.None.xl.db
+test/missing.None.xl.db
+.github/workflows/pytest.yml

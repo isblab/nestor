@@ -10,7 +10,7 @@
 ## **Installation:**
 ### **Dependencies:**  
 * IMP (compiled from the source code). See [IMP installation](https://github.com/salilab/imp)
-* Python libraries: `numpy`, `mergedeep`, `mpi4py`, `matplotlib`, `pyyaml`
+* See `requirements.txt` for Python dependencies
 
 ### **NestOR installation:**  
 1. Compile IMP from the souce code to your choice of directory
@@ -32,7 +32,7 @@
 ### Run command
 
 1. Run the NestOR wrapper as follows:
-```python pyext/src/wrapper_v5.py {nestor_param_path} {mode}```
+```python pyext/src/wrapper_v6.py {nestor_param_path} {mode}```
 where, `nestor_param_path` refers to the absolute path to the `nestor_params.yaml`file and mode refers to the mode of representation (`manual`/`topology`). The default choice is topology (does not need to be mentioned), If the representation is defined in the modeling script, use manual argument.
 
 2. Run the following command:
@@ -107,5 +107,5 @@ International License.
 **Last known good IMP version:** `not tested`   
 **Testable:** Yes  
 **Parallelizeable:** Yes  
-**Publications:**  Arvindekar, S, Pathak., A.S., Majila. K.M., Viswanath, S. Optimizing representations for integrative structural modeling using bayesian model selection. DOI: [10.1093/bioinformatics/btae106](https://doi.org/10.1093/bioinformatics/btae106).     
+**Publications:**  Arvindekar, S., Viswanath, S. Optimizing representations for integrative structural modeling using bayesian model selection. DOI: [10.1093/bioinformatics/btae106](https://doi.org/10.1093/bioinformatics/btae106).     
 **_#TODO: Make the publication in appropriate format_**
