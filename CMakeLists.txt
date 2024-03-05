@@ -68,11 +68,17 @@ if(${status} EQUAL 0)
       COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/build/doxygen_spell_check.py xml ${CMAKE_SOURCE_DIR}/modules/nestor/test/standards_exceptions
       DEPENDS ${IMP_kernel_DOC}
 ${IMP_cgal_DOC}
+${IMP_mmcif_DOC}
 ${IMP_algebra_DOC}
 ${IMP_display_DOC}
 ${IMP_score_functor_DOC}
+${IMP_statistics_DOC}
 ${IMP_core_DOC}
-${IMP_container_DOC} ${headers} ${docs} ${examples} ${CMAKE_SOURCE_DIR}/modules/nestor/README.md ${IMP_nestor_TAG_DEPENDS}
+${IMP_container_DOC}
+${IMP_atom_DOC}
+${IMP_em_DOC}
+${IMP_saxs_DOC}
+${IMP_isd_DOC} ${headers} ${docs} ${examples} ${CMAKE_SOURCE_DIR}/modules/nestor/README.md ${IMP_nestor_TAG_DEPENDS}
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/doxygen/nestor/
       COMMENT "Running doxygen on nestor")
 
@@ -90,8 +96,8 @@ ${IMP_container_DOC} ${headers} ${docs} ${examples} ${CMAKE_SOURCE_DIR}/modules/
   endif(IMP_DOXYGEN_FOUND)
 
   if(0 EQUAL 0)
-    list(APPEND imp_nestor_libs ${IMP_kernel_LIBRARY};${IMP_cgal_LIBRARY};${IMP_algebra_LIBRARY};${IMP_display_LIBRARY};${IMP_score_functor_LIBRARY};${IMP_core_LIBRARY};${IMP_container_LIBRARY})
-    list(APPEND imp_nestor_libs ${BOOST.FILESYSTEM_LIBRARIES};${BOOST.PROGRAMOPTIONS_LIBRARIES};${BOOST.SYSTEM_LIBRARIES};${GPERFTOOLS_LIBRARIES};${TCMALLOC_HEAPPROFILER_LIBRARIES};${TCMALLOC_HEAPCHECKER_LIBRARIES};${BOOST.RANDOM_LIBRARIES};${NUMPY_LIBRARIES};${CGAL_LIBRARIES};${ANN_LIBRARIES};${HDF5_LIBRARIES};${PYTHON-IHM_LIBRARIES};${ROBIN_MAP_LIBRARIES};${GOOGLE_DENSE_HASH_MAP_LIBRARIES})
+    list(APPEND imp_nestor_libs ${IMP_kernel_LIBRARY};${IMP_cgal_LIBRARY};${IMP_mmcif_LIBRARY};${IMP_algebra_LIBRARY};${IMP_display_LIBRARY};${IMP_score_functor_LIBRARY};${IMP_statistics_LIBRARY};${IMP_core_LIBRARY};${IMP_container_LIBRARY};${IMP_atom_LIBRARY};${IMP_em_LIBRARY};${IMP_saxs_LIBRARY};${IMP_isd_LIBRARY})
+    list(APPEND imp_nestor_libs ${BOOST.FILESYSTEM_LIBRARIES};${BOOST.PROGRAMOPTIONS_LIBRARIES};${BOOST.SYSTEM_LIBRARIES};${GPERFTOOLS_LIBRARIES};${TCMALLOC_HEAPPROFILER_LIBRARIES};${TCMALLOC_HEAPCHECKER_LIBRARIES};${BOOST.RANDOM_LIBRARIES};${NUMPY_LIBRARIES};${CGAL_LIBRARIES};${ANN_LIBRARIES};${HDF5_LIBRARIES};${PYTHON-IHM_LIBRARIES};${ROBIN_MAP_LIBRARIES};${GOOGLE_DENSE_HASH_MAP_LIBRARIES};${BOOST.REGEX_LIBRARIES})
     list(REMOVE_DUPLICATES imp_nestor_libs)
 
     add_custom_command(

@@ -26,6 +26,7 @@ include_directories(SYSTEM ${ANN_INCLUDE_PATH}
         ${BOOST.FILESYSTEM_INCLUDE_PATH}
         ${BOOST.PROGRAMOPTIONS_INCLUDE_PATH}
         ${BOOST.RANDOM_INCLUDE_PATH}
+        ${BOOST.REGEX_INCLUDE_PATH}
         ${BOOST.SYSTEM_INCLUDE_PATH}
         ${CGAL_INCLUDE_PATH}
         ${GOOGLE_DENSE_HASH_MAP_INCLUDE_PATH}
@@ -40,6 +41,7 @@ link_directories(${ANN_LINK_PATH}
         ${BOOST.FILESYSTEM_LINK_PATH}
         ${BOOST.PROGRAMOPTIONS_LINK_PATH}
         ${BOOST.RANDOM_LINK_PATH}
+        ${BOOST.REGEX_LINK_PATH}
         ${BOOST.SYSTEM_LINK_PATH}
         ${CGAL_LINK_PATH}
         ${GOOGLE_DENSE_HASH_MAP_LINK_PATH}
@@ -61,6 +63,7 @@ set(swig_path ${ANN_SWIG_PATH}
         ${BOOST.FILESYSTEM_SWIG_PATH}
         ${BOOST.PROGRAMOPTIONS_SWIG_PATH}
         ${BOOST.RANDOM_SWIG_PATH}
+        ${BOOST.REGEX_SWIG_PATH}
         ${BOOST.SYSTEM_SWIG_PATH}
         ${CGAL_SWIG_PATH}
         ${GOOGLE_DENSE_HASH_MAP_SWIG_PATH}
@@ -120,11 +123,17 @@ target_link_libraries(IMP.nestor-python
 
 set(IMP_nestor_PYTHON ${source} IMP.nestor-python ${wrap_py} ${IMP_kernel_PYTHON}
 ${IMP_cgal_PYTHON}
+${IMP_mmcif_PYTHON}
 ${IMP_algebra_PYTHON}
 ${IMP_display_PYTHON}
 ${IMP_score_functor_PYTHON}
+${IMP_statistics_PYTHON}
 ${IMP_core_PYTHON}
 ${IMP_container_PYTHON}
+${IMP_atom_PYTHON}
+${IMP_em_PYTHON}
+${IMP_saxs_PYTHON}
+${IMP_isd_PYTHON}
                    CACHE INTERNAL "" FORCE)
 
 INSTALL(TARGETS IMP.nestor-python DESTINATION ${CMAKE_INSTALL_PYTHONDIR})

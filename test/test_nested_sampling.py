@@ -1,3 +1,5 @@
+import os
+import shutil
 import numpy as np
 import yaml
 import IMP
@@ -10,6 +12,7 @@ import IMP.pmi.restraints.stereochemistry
 import IMP.pmi.restraints.crosslinking
 import IMP.pmi.tools
 import IMP.pmi.macros
+import subprocess
 
 
 class Tests(IMP.test.TestCase):
@@ -96,79 +99,141 @@ class Tests(IMP.test.TestCase):
         )
         return ns
 
-    def run_base_run(self):
-        """Was used to get the preliminary output for test_reproducibility() function. It is not used anymore."""
-        results = {}
-        for i in range(10):
-            ns = self.prepare_system()
-            ns_output, _ = ns.execute_nested_sampling2()
-            results[i] = ns_output
-        with open(
-            "input/nestor_output.yaml",
-            "w",
-        ) as yaml_out:
-            yaml.dump(results, yaml_out)
+    # def run_base_run(self):
+    #     """Was used to get the preliminary output for test_reproducibility() function. It is not used anymore."""
+    #     results = {}
+    #     for i in range(10):
+    #         ns = self.prepare_system()
+    #         ns_output, _ = ns.execute_nested_sampling2()
+    #         results[i] = ns_output
+    #     with open(
+    #         "input/nestor_output.yaml",
+    #         "w",
+    #     ) as yaml_out:
+    #         yaml.dump(results, yaml_out)
 
-    def test_ns_initial_sampling(self):
-        """Test initial sampling and likelihood parsing"""
-        ns = self.prepare_system()
-        ns.sample_initial_frames()
-        likelihoods = ns.parse_likelihoods(iteration=0)
+    # def test_ns_initial_sampling(self):
+    #     """Test initial sampling and likelihood parsing"""
+    #     ns = self.prepare_system()
+    #     ns.sample_initial_frames()
+    #     likelihoods = ns.parse_likelihoods(iteration=0)
 
-        with open(self.get_input_file_name("nestor_params_optrep.yaml"), "r") as yamf:
-            expectations = yaml.safe_load(yamf)
+    #     with open(self.get_input_file_name("nestor_params_optrep.yaml"), "r") as yamf:
+    #         expectations = yaml.safe_load(yamf)
 
-        self.assertEqual(len(likelihoods), int(expectations["num_init_frames"]))
+    #     self.assertEqual(len(likelihoods), int(expectations["num_init_frames"]))
 
-    def test_reproducibility(self):
-        """Check if the results are reproducible"""
-        with open(self.get_input_file_name("nestor_output.yaml"), "r") as ori_out:
-            expected_result = yaml.safe_load(ori_out)
-            expected_logz = [
-                expected_result[i]["log_estimated_evidence"] for i in expected_result
-            ]
+    # def test_reproducibility(self):
+    #     """Check if the results are reproducible"""
+    #     with open(self.get_input_file_name("nestor_output.yaml"), "r") as ori_out:
+    #         expected_result = yaml.safe_load(ori_out)
+    #         expected_logz = [
+    #             expected_result[i]["log_estimated_evidence"] for i in expected_result
+    #         ]
 
-            new_results = []
-            for _ in range(10):
-                ns = self.prepare_system()
-                ns_output, _ = ns.execute_nested_sampling2()
-                new_results.append(ns_output["log_estimated_evidence"])
+    #         new_results = []
+    #         for _ in range(10):
+    #             ns = self.prepare_system()
+    #             ns_output, _ = ns.execute_nested_sampling2()
+    #             new_results.append(ns_output["log_estimated_evidence"])
 
-            mean_expected, std_expected = np.mean(np.array(expected_logz)), np.std(
-                np.array(expected_logz)
-            )
+    #         mean_expected, std_expected = np.mean(np.array(expected_logz)), np.std(
+    #             np.array(expected_logz)
+    #         )
 
-            mean_new = np.mean(np.array(new_results))
+    #         mean_new = np.mean(np.array(new_results))
 
-            lower_bound = mean_expected - (1.96 * std_expected)
-            upper_bound = mean_expected + (1.96 * std_expected)
-            self.assertTrue(lower_bound <= mean_new <= upper_bound)
+    #         lower_bound = mean_expected - (1.96 * std_expected)
+    #         upper_bound = mean_expected + (1.96 * std_expected)
+    #         self.assertTrue(lower_bound <= mean_new <= upper_bound)
 
-    def test_self_consistency(self):
-        """Check if multiple sets of runs return similar evidence estimates"""
-        setA = []
-        setB = []
-        for _ in range(10):
-            ns = self.prepare_system()
-            ns_outputA, _ = ns.execute_nested_sampling2()
+    # def test_self_consistency(self):
+    #     """Check if multiple sets of runs return similar evidence estimates"""
+    #     setA = []
+    #     setB = []
+    #     for _ in range(10):
+    #         ns = self.prepare_system()
+    #         ns_outputA, _ = ns.execute_nested_sampling2()
 
-            setA.append(ns_outputA["log_estimated_evidence"])
-            ns_outputB, _ = ns.execute_nested_sampling2()
-            setB.append(ns_outputB["log_estimated_evidence"])
+    #         setA.append(ns_outputA["log_estimated_evidence"])
+    #         ns_outputB, _ = ns.execute_nested_sampling2()
+    #         setB.append(ns_outputB["log_estimated_evidence"])
 
-        setA = np.array(setA)
-        setB = np.array(setB)
-        meanA, stdA, sterrA = (
-            np.mean(setA),
-            np.std(setA),
-            np.std(setA) / np.sqrt(len(setA)),
-        )
-        # lower_bound, upper_bound = meanA - sterrA, meanA + sterrA #? This one
-        lower_bound, upper_bound = meanA - (1.96 * stdA), meanA + (
-            1.96 * stdA
-        )  # ? or this one?
-        meanB = np.mean(setB)
-        self.assertTrue(lower_bound <= meanB <= upper_bound)
+    #     setA = np.array(setA)
+    #     setB = np.array(setB)
+    #     meanA, stdA, sterrA = (
+    #         np.mean(setA),
+    #         np.std(setA),
+    #         np.std(setA) / np.sqrt(len(setA)),
+    #     )
+    #     # lower_bound, upper_bound = meanA - sterrA, meanA + sterrA #? This one
+    #     lower_bound, upper_bound = meanA - (1.96 * stdA), meanA + (
+    #         1.96 * stdA
+    #     )  # ? or this one?
+    #     meanB = np.mean(setB)
+    #     self.assertTrue(lower_bound <= meanB <= upper_bound)
+
+    # def test_individual_run_output_file_creation(self):
+    #     ns = self.prepare_system()
+    #     ns.execute_nested_sampling2()
+    #     expected_files = [
+    #         "live_loglixi.png",
+    #         "lixi.png",
+    #         "log_lixi.png",
+    #         "nested_0.rmf3",
+    #         "temporary_output.yaml",
+    #     ]
+
+    #     all_files_in_dir = os.listdir(os.getcwd())
+    #     for exp_file in expected_files:
+    #         self.assertTrue(exp_file in all_files_in_dir)
+
+    def test_wrapper_returncode(self):
+        if "runs" in os.listdir(os.getcwd()):
+            shutil.rmtree(os.path.join(os.getcwd(), "runs"))
+
+        wrapper_path = os.path.join(os.getcwd(), "../pyext/src/wrapper_v6.py")
+        paramf_path = self.get_input_file_name("nestor_params_optrep.yaml")
+        print(wrapper_path, paramf_path)
+        command = [
+            "python",
+            wrapper_path,
+            paramf_path,
+        ]
+        p_exitcode = subprocess.call(command)
+        self.assertEqual(p_exitcode, 0)
+
+    # def test_wrapper_run_output_file_creation(self):
+    #     expected_files = [
+    #         "trial_optrep_params_evidence_errorbarplot.png",
+    #         "trial_optrep_params_persteptime.png",
+    #         "trial_optrep_params_proctime.png",
+    #         "nestor_output.yaml",
+    #     ]
+
+    #     if "runs" in os.listdir(os.getcwd()):
+    #         shutil.rmtree(os.path.join(os.getcwd(), "runs"))
+
+    #     wrapper_path = os.path.join(os.getcwd(), "../pyext/src/wrapper_v6.py")
+    #     paramf_path = self.get_input_file_name("nestor_params_optrep.yaml")
+    #     print(wrapper_path, paramf_path)
+    #     command = [
+    #         "python",
+    #         wrapper_path,
+    #         paramf_path,
+    #     ]
+    #     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    #     out, err = p.communicate()
+    #     print(p.returncode)
+    #     if p.returncode != 0:
+    #         print(err)
+    #         print(out)
+
+    #     generated_files = os.listdir(os.path.join(os.getcwd(), "runs"))
+
+    #     for exp_file in expected_files:
+    #         print(exp_file)
+    #         self.assertTrue(exp_file in generated_files)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,3 @@
-from genericpath import isdir
 import os
 import sys
 import yaml
@@ -280,7 +279,7 @@ if not "skip_calc" in sys.argv:
 
 
 with open(os.path.join(parent_path, "nestor_output.yaml"), "r") as outf:
-    results=yaml.safe_load(outf)
+    results = yaml.safe_load(outf)
     if len(list(results.keys())) > 0:
         plotter(results)
     else:
