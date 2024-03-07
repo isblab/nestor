@@ -22,6 +22,7 @@ jobs:
         submodules: true
     - name: Setup conda and dependencies
       run: |
+        pip install requirements.txt
         tools/setup_ci.sh ${{ matrix.python-version }}
     - name: Test
       run: |
@@ -31,7 +32,6 @@ jobs:
         if test "${{ matrix.python-version }}" = "2.7" ; then PY2=on; else PY2=off; fi
         cmake .. -DIMP_DIR=${CONDA_PREFIX}/lib/cmake/IMP -DUSE_PYTHON2=${PY2}
         make
-        pip install requirements.txt
         ./setup_environment.sh pytest --cov=.. --cov-branch --cov-report=xml -v ../test/test_*.py 
         flake8 ../pyext/src/ ../test/
     - uses: codecov/codecov-action@v1
