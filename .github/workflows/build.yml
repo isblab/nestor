@@ -22,6 +22,10 @@ jobs:
         submodules: true
     - name: Setup conda and dependencies
       run: |
+        sudo apt update
+        sudo apt-get install libopenmpi-dev
+        python -m pip install --upgrade pip
+        pip install flake8 pytest pytest-cov coverage
         pip install -r requirements.txt
         tools/setup_ci.sh ${{ matrix.python-version }}
     - name: Test
