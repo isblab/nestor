@@ -100,11 +100,15 @@ run_output_dir = "run_" + sys.argv[1]
 topology_file = dat_dir + sys.argv[2]
 h_param_file = sys.argv[3]
 
+
+# ns = prepare_system(topology_file, h_param_file)
+# ns_output, ns_exitcode = ns.execute_nested_sampling2()
 with open("errors.log", "w") as errf:
-    with contextlib.redirect_stdout(None):
-        with contextlib.redirect_stderr(errf):
-            ns = prepare_system(topology_file, h_param_file)
-            ns_output, ns_exitcode = ns.execute_nested_sampling2()
+    with open("out.log", "w") as outf:
+        with contextlib.redirect_stdout(outf):
+            with contextlib.redirect_stderr(errf):
+                ns = prepare_system(topology_file, h_param_file)
+                ns_output, ns_exitcode = ns.execute_nested_sampling2()
 
 if ns_output is not None:
     print(f"////{ns_output}")

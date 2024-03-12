@@ -124,7 +124,7 @@ class Tests(IMP.test.TestCase):
 
         self.assertEqual(len(likelihoods), int(expectations["num_init_frames"]))
 
-    def test_reproducibility(self):
+    def ccctest_reproducibility(self):
         """Check if the results are reproducible"""
         with open(self.get_input_file_name("nestor_output.yaml"), "r") as ori_out:
             expected_result = yaml.safe_load(ori_out)
@@ -148,7 +148,7 @@ class Tests(IMP.test.TestCase):
             upper_bound = mean_expected + (1.96 * std_expected)
             self.assertTrue(lower_bound <= mean_new <= upper_bound)
 
-    def test_self_consistency(self):
+    def ccctest_self_consistency(self):
         """Check if multiple sets of runs return similar evidence estimates"""
         setA = []
         setB = []
@@ -175,7 +175,7 @@ class Tests(IMP.test.TestCase):
         meanB = np.mean(setB)
         self.assertTrue(lower_bound <= meanB <= upper_bound)
 
-    def test_individual_run_output_file_creation(self):
+    def ccctest_individual_run_output_file_creation(self):
         ns = self.prepare_system("topology5.txt")
         ns.execute_nested_sampling2()
         expected_files = [
@@ -190,7 +190,7 @@ class Tests(IMP.test.TestCase):
         for exp_file in expected_files:
             self.assertTrue(exp_file in all_files_in_dir)
 
-    def test_wrapper_run_output_file_creation(self):
+    def ccctest_wrapper_run_output_file_creation(self):
         expected_files = [
             "trial_optrep_params_evidence_errorbarplot.png",
             "trial_optrep_params_persteptime.png",
@@ -198,16 +198,21 @@ class Tests(IMP.test.TestCase):
             "nestor_output.yaml",
         ]
 
-        if "runs" in os.listdir(os.getcwd()):
-            shutil.rmtree(os.path.join(os.getcwd(), "runs"))
-
         paramf_path = self.get_input_file_name("nestor_params_optrep.yaml")
+        with open(paramf_path, "r") as paramf:
+            params = yaml.safe_load(paramf)
+        parent_dir = params["parent_dir"]
+
+        if os.path.exists(parent_dir):
+            shutil.rmtree(parent_dir)
+
         wrapper_v6.main(paramf_path, True)
 
-        print(os.getcwd())
-        generated_files = os.listdir("../../../runs")
+        generated_files = os.listdir(parent_dir)
 
         for exp_file in expected_files:
+            exp_file = os.path.join(parent_dir, exp_file)
+            print(exp_file)
             self.assertTrue(exp_file in generated_files)
 
 

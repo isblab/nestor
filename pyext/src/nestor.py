@@ -27,6 +27,13 @@ class NestedSampling:
         self.num_frames_per_iter = self.h_params["num_frames_per_iter"]
         self.nestor_niter = self.h_params["max_nestor_iter"]
         self.rex_macro = rex_macro
+
+        for restraint in nestor_restraints:
+            if restraint.weight != 0:
+                raise ValueError(
+                    "Weight of all restraints in nestor_restraints must be set to 0"
+                )
+
         self.rex_macro.nestor_restraints = nestor_restraints
         self.rex_macro.nest = True
 
