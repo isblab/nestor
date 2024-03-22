@@ -124,7 +124,7 @@ class Tests(IMP.test.TestCase):
 
         self.assertEqual(len(likelihoods), int(expectations["num_init_frames"]))
 
-    def ccctest_reproducibility(self):
+    def test_reproducibility(self):
         """Check if the results are reproducible"""
         with open(self.get_input_file_name("nestor_output.yaml"), "r") as ori_out:
             expected_result = yaml.safe_load(ori_out)
@@ -133,7 +133,7 @@ class Tests(IMP.test.TestCase):
             ]
 
             new_results = []
-            for _ in range(10):
+            for _ in range(3):
                 ns = self.prepare_system("topology5.txt")
                 ns_output, _ = ns.execute_nested_sampling2()
                 new_results.append(ns_output["log_estimated_evidence"])

@@ -119,7 +119,7 @@ def plotter(results: dict, h_params):
     )
 
 
-def main(h_param_file, topology=True):
+def run_nested_sampling(h_param_file, topology=True):
     with open(h_param_file, "r") as paramf:
         h_params = yaml.safe_load(paramf)
 
@@ -286,7 +286,7 @@ if __name__ == "__main__":
     with open(h_param_file, "r") as h_paramf:
         h_params = yaml.safe_load(h_paramf)
     if sys.argv[3] != "skip_calc":
-        main(h_param_file, use_topology)
+        run_nested_sampling(h_param_file, use_topology)
 
     else:
 

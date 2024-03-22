@@ -600,16 +600,16 @@ Objavro.codecnullavro.schema‚¸{
         }
     ]
 }
- ñtµæë{¸¾ø~ì=î?Ô; IMP 2.20.1IMP
+ ñ-ùM‘„‰ ŒoÇÆJıYÒ_ IMP 2.20.1IMP
 alias alternatives
 physicsprovenancesequence
-shape    p root  System  State_0 
+shape    ˆ root  System  State_0 
 Prot1 &frags:1-2,5-9: Base 
 ,frags:1-2,5-9,: Res 10 Fragment [1-3)
  Fragment [5-10)
  input structure
  8frags:1-2,5-9,: Densities 10 Density #0 *frags:1-2,5-9,: Res 1 1 2 5 6  7 "8 $9 &input structure (Frag_3-4 *6Frag_3-4: Res 5 Densities 5( ,3-4_bead* .Frag_10-10 0:Frag_10-10: Res 5 Densities 5. 2100 4
-Prot2 6Frag_1-84 8 Frag_1-8: Res 10 :Fragment [1-9)8 <input structure8 >Frag_1-8: Res 16 @1> B2> D3> F4> H5> J6> L7> N8> Pinput structure> RFrag_9-134 T"Frag_9-13: Res 10 VFragment [9-14)T Xinput structureT Z Frag_9-13: Res 1R \9Z ^10Z `11Z b12Z d13Z finput structureZ hsampling jscripth lsoftwarej nsoftwarel  f  filter threshold"cluster precision&explicit resolutionmass
+Prot2 6Frag_1-84 8 Frag_1-8: Res 10 :Fragment [1-9)8 <input structure8 >Frag_1-8: Res 16 @1> B2> D3> F4> H5> J6> L7> N8> Pinput structure> RFrag_9-134 T"Frag_9-13: Res 10 VFragment [9-14)T Xinput structureT Z Frag_9-13: Res 1R \9Z ^10Z `11Z b12Z d13Z finput structureZ hsampling jsamplingh lsamplingj nsamplingl psamplingn rsamplingp tsamplingr vsamplingt xsamplingv zsamplingx |samplingz ~sampling| €sampling~ ‚script€ „software‚ †software„  f  filter threshold"cluster precision&explicit resolutionmass
 radius
 
 *diffusion coefficient
@@ -624,11 +624,23 @@ roots residue indexes coordinates
 rgb colorvariances
 translation
  rotation
-  fåXåPå<å&kk hd h h *`JH
+  fåXåPå<å&kk |
+x
+€dv
+t
+r
+z
+p
+n
+~
+l
+j
+h
+ |x€vtrzpn~ljh |x€vtrzpn~ljh *`JH
 BN@D2$L" F
 db^\ 4   4      $4  R  €?T   A8   A6  €?0   @.   @*   @(   @   A
-   A  €? 6`…+#CVT”DN…+#CJìQâB2  ÜB,  \C@ç;ÂBD²CL‹, C$ìQâB"‘-æBDÆBdìQâBbÃ5ÊB^ğ'®B²C\DÆB‰! CHìQâBœ;D8(şCB²CF‘-æB ‹, C:É¢eDÅrCDÆB 6`˜ST@VïŒ¡@N˜ST@JdNC@2dNC@,ïB`@@İæ1@DuÉ?@L|üB@$dNC@"šg7@ùÏ8@ddNC@b3@^Âõ&@uÉ?@\ùÏ8@¥}@@H|üB@óg™@ùl¡@BuÉ?@Fšg7@ |üB@:‰BÁ@5r@ùÏ8@   finput/prot.pdbXinput/prot.pdbPinput/prot.pdb<input/prot.pdb&input/prot.pdbinput/prot.pdb fBXBPB<B&AA hMonte Carlo 
-j.test_nested_sampling.py nFIntegrative Modeling Platform (IMP)lIMP PMI module n2.20.1l develop-9a72bcca n>https://integrativemodeling.orgl>https://integrativemodeling.org *`TYRJLEUHILEBGLUNTYR@PRODGLU2LEU$LEULLYS"ASP LYSFASPVALVALdLEUbTHR^SERGLU\VALGLN 4BA 4PEEDILKYVSYTLQEALVVKDLL 4   4LPolypeptideLPolypeptide   2            ,                         4`          €?V          €?N          €?J          €?H          €?2          €?,          €?@          €?D          €?L          €?$          €?"          €?          €?d          €?b          €?^          €?          €?\          €?          €?          €?B          €?           €?:          €?F          €?          €?          €? 2dNC@dNC@dNC@,ïB`@ïB`@ïB`@¢Rá@ÕÚ·A¹t€@    
+   A  €? 6`…+#CVT”DN…+#CJìQâB2  ÜB,  \C@ç;ÂBD²CL‹, C$ìQâB"‘-æBDÆBdìQâBbÃ5ÊB^ğ'®B²C\DÆB‰! CHìQâBœ;D8(şCB²CF‘-æB ‹, C:É¢eDÅrCDÆB 6`˜ST@VïŒ¡@N˜ST@JdNC@2dNC@,ïB`@@İæ1@DuÉ?@L|üB@$dNC@"šg7@ùÏ8@ddNC@b3@^Âõ&@uÉ?@\ùÏ8@¥}@@H|üB@óg™@ùl¡@BuÉ?@Fšg7@ |üB@:‰BÁ@5r@ùÏ8@   finput/prot.pdbXinput/prot.pdbPinput/prot.pdb<input/prot.pdb&input/prot.pdbinput/prot.pdb fBXBPB<B&AA |Monte CarloxMonte Carlo€Monte CarlovMonte CarlotMonte CarlorMonte CarlozMonte CarlopMonte CarlonMonte Carlo~Monte CarlolMonte CarlojMonte CarlohMonte Carlo 
+‚.test_nested_sampling.py †FIntegrative Modeling Platform (IMP)„IMP PMI module †2.20.1„ develop-a3f39aa1 †>https://integrativemodeling.org„>https://integrativemodeling.org *`TYRJLEUHILEBGLUNTYR@PRODGLU2LEU$LEULLYS"ASP LYSFASPVALVALdLEUbTHR^SERGLU\VALGLN 4BA 4PEEDILKYVSYTLQEALVVKDLL 4   4LPolypeptideLPolypeptide   2            ,                         4`          €?V          €?N          €?J          €?H          €?2          €?,          €?@          €?D          €?L          €?$          €?"          €?          €?d          €?b          €?^          €?          €?\          €?          €?          €?B          €?           €?:          €?F          €?          €?          €? 2dNC@dNC@dNC@,ïB`@ïB`@ïB`@¢Rá@ÕÚ·A¹t€@    
 R  6  . (    
 RT 68 .0 (* 
   &6
@@ -646,5 +658,15 @@ RT 68 .0 (* 
  R
   , 
 
-                 0`P­«AY­ÂÁ1ÂVY@¼²ëÂMĞÒÁN¼NÂ¦ãÂKBTÂJ¥¬ÂâB4²çÂHnEÂ-ïŒÂÖ/Â@efÂiMÂ	¾ÂDÅÖÓÁbõ‰ÂÕÕALw}Âr¾Á¸€èÂ$R*\Bº«ÉA¨›Â"^8eÂîş|Â‘óùÂÚòÂAo»uÂÀÃdÏçSÂ>0´ÂF$lÂb”‡Â.ÔÁ˜ŒwÂ^“AfwÍÂËæÂ“BBèúnÂQ×ÆÂ\ÊĞÂÂ‡Â•¬vÂ+	Âé<À¶ı§Âg¿AÑÊÂ>I@BÚô¶Â¾hÚÀ}Ö½Á é!hÂÙPÁÁşÃÂ:Å#!Á¸­AB<ÂF}’ÂİaoÁÉB)›<A¹Ta?Ìÿò@
-¡êA½ğÂÿŠˆÂ 2dNC@dNC@dNC@,ïB`@ïB`@ïB`@¢Rá@ÕÚ·A¹t€@ 2÷HsBüWÄAK¤Â,ïóA‹ŒrÂÊõÂÖ!XÂW¦Â-VĞÂ   2~>ú(›½dò¿ÊJ¿,)2n?\®¼85<¾†¢¾nÑ>€ƒ‚>â6Q¿[ı>       ñtµæë{¸¾ø~ì=î?  ñtµæë{¸¾ø~ì=î?
+                 0`9ÂÉÁÂÀÈÁV¯ÇÂÎ2†Á
+ñœÂNÑØÂ‰À–•%ÂJgêÂÙPÂºØÂH¡2Â<æB0¼‹Á@ŸhJÂ¹GŞÂ*¹ÍÂDgz@¸4hBøŠÂL~3LÁ>pĞÁ±ã@$†Y?B¾NÂç‘Â"ƒIóÀë_¯ÁqÓA£.B‚ÓÂAø¿Âd.EÁGœŞA¶ŒÂbªèÂTYãÁÛÎ„Â^¤H¶Â.¦[Â/ïTÁË¨Â¦òÀ¿¦ŞßÂ\¡5ÂÃÒB`÷@ñê´ÁÎ¶ÃA‚[“ÂÆôAèˆÂÓjÃBÉi‘Â’7Â;ÛrÂ i*§Á	oñÁåÁ•Â:,—Âbá^Á²ÁFçÁÆ‰ÙÂ¬ÉÁÛHÀ~	Ã,ºÂúMf@ï]Â”jqÂ 2dNC@dNC@dNC@,ïB`@ïB`@ïB`@¢Rá@ÕÚ·A¹t€@ 2ñ]+B5B>ÂÒô…Â,w•·ÁÆÉVÂIvÏÂ‡~±?’BbÂ   2Hİ?‚`‚=&í>)!?,Î],?²î<‹µº>:|$?î
+=æi¿ü`À¾ó>                0`9ÂÉÁÂÀÈÁV¯ÇÂÎ2†Á
+ñœÂNÑØÂ‰À–•%ÂJgêÂÙPÂºØÂH¡2Â<æB0¼‹Á@ŸhJÂ¹GŞÂ*¹ÍÂDgz@¸4hBøŠÂL~3LÁ>pĞÁ±ã@$†Y?B¾NÂç‘Â"ƒIóÀë_¯ÁqÓA£.B‚ÓÂAø¿Âd.EÁGœŞA¶ŒÂbªèÂTYãÁÛÎ„Â^¤H¶Â.¦[Â/ïTÁË¨Â¦òÀ¿¦ŞßÂ\¡5ÂÃÒB`÷@ñê´ÁÎ¶ÃA‚[“ÂÆôAèˆÂÓjÃBÉi‘Â’7Â;ÛrÂ i*§Á	oñÁåÁ•Â:,—Âbá^Á²ÁFçÁÆ‰ÙÂ¬ÉÁÛHÀ~	Ã,ºÂúMf@ï]Â”jqÂ 2dNC@dNC@dNC@,ïB`@ïB`@ïB`@¢Rá@ÕÚ·A¹t€@ 2Ô;&B«(LÂ¢R™Â,w•·ÁÆÉVÂIvÏÂ‡~±?’BbÂ   2Hİ?‚`‚=&í>)!?,Î],?²î<‹µº>:|$?î
+=æi¿ü`À¾ó>                0`9ÂÉÁÂÀÈÁV¯ÇÂÎ2†Á
+ñœÂNÑØÂ‰À–•%ÂJgêÂÙPÂºØÂH¡2Â<æB0¼‹Á@ŸhJÂ¹GŞÂ*¹ÍÂDgz@¸4hBøŠÂL~3LÁ>pĞÁ±ã@$†Y?B¾NÂç‘Â"ƒIóÀë_¯ÁqÓA£.B‚ÓÂAø¿Âd.EÁGœŞA¶ŒÂbªèÂTYãÁÛÎ„Â^¤H¶Â.¦[Â/ïTÁË¨Â¦òÀ¿¦ŞßÂ\¡5ÂÃÒB`÷@ñê´ÁÎ¶ÃA‚[“ÂÆôAèˆÂÓjÃBÉi‘Â’7Â;ÛrÂ i*§Á	oñÁåÁ•Â:,—Âbá^Á²ÁFçÁÆ‰ÙÂ¬ÉÁÛHÀ~	Ã,ºÂúMf@ï]Â”jqÂ 2dNC@dNC@dNC@,ïB`@ïB`@ïB`@¢Rá@ÕÚ·A¹t€@ 2HI2B–ÚTÂ
+˜Â,w•·ÁÆÉVÂIvÏÂ‡~±?’BbÂ   2Hİ?‚`‚=&í>)!?,Î],?²î<‹µº>:|$?î
+=æi¿ü`À¾ó>                0`9ÂÉÁÂÀÈÁV¯ÇÂÎ2†Á
+ñœÂNÑØÂ‰À–•%ÂJgêÂÙPÂºØÂH¡2Â<æB0¼‹Á@ŸhJÂ¹GŞÂ*¹ÍÂDgz@¸4hBøŠÂL~3LÁ>pĞÁ±ã@$†Y?B¾NÂç‘Â"ƒIóÀë_¯ÁqÓA£.B‚ÓÂAø¿Âd.EÁGœŞA¶ŒÂbªèÂTYãÁÛÎ„Â^¤H¶Â.¦[Â/ïTÁË¨Â¦òÀ¿¦ŞßÂ\¡5ÂÃÒB`÷@ñê´ÁÎ¶ÃA‚[“ÂÆôAèˆÂÓjÃBÉi‘Â’7Â;ÛrÂ i*§Á	oñÁåÁ•Â:,—Âbá^Á²ÁFçÁÆ‰ÙÂ¬ÉÁÛHÀ~	Ã,ºÂúMf@ï]Â”jqÂ 2dNC@dNC@dNC@,ïB`@ïB`@ïB`@¢Rá@ÕÚ·A¹t€@ 2øŠAB9PdÂ¨™Â,w•·ÁÆÉVÂIvÏÂ‡~±?’BbÂ   2Hİ?‚`‚=&í>)!?,Î],?²î<‹µº>:|$?î
+=æi¿ü`À¾ó>                0`9ÂÉÁÂÀÈÁV¯ÇÂÎ2†Á
+ñœÂNÑØÂ‰À–•%ÂJgêÂÙPÂºØÂH¡2Â<æB0¼‹Á@ŸhJÂ¹GŞÂ*¹ÍÂDgz@¸4hBøŠÂL~3LÁ>pĞÁ±ã@$†Y?B¾NÂç‘Â"ƒIóÀë_¯ÁqÓA£.B‚ÓÂAø¿Âd.EÁGœŞA¶ŒÂbªèÂTYãÁÛÎ„Â^¤H¶Â.¦[Â/ïTÁË¨Â¦òÀ¿¦ŞßÂ\¡5ÂÃÒB`÷@ñê´ÁÎ¶ÃA‚[“ÂÆôAèˆÂÓjÃBÉi‘Â’7Â;ÛrÂ i*§Á	oñÁåÁ•Â:,—Âbá^Á²ÁFçÁÆ‰ÙÂ¬ÉÁÛHÀ~	Ã,ºÂúMf@ï]Â”jqÂ 2dNC@dNC@dNC@,ïB`@ïB`@ïB`@¢Rá@ÕÚ·A¹t€@ 2³3B•ŒgÂî£•Â,w•·ÁÆÉVÂIvÏÂ‡~±?’BbÂ   2Hİ?‚`‚=&í>)!?,Î],?²î<‹µº>:|$?î
+=æi¿ü`À¾ó>       ñ-ùM‘„‰ ŒoÇÆJıY  ñ-ùM‘„‰ ŒoÇÆJıY
