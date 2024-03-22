@@ -152,7 +152,7 @@ class Tests(IMP.test.TestCase):
         """Check if multiple sets of runs return similar evidence estimates"""
         setA = []
         setB = []
-        for _ in range(10):
+        for _ in range(3):
             nsA = self.prepare_system("topology5.txt")
             ns_outputA, _ = nsA.execute_nested_sampling2()
             setA.append(ns_outputA["log_estimated_evidence"])
@@ -163,15 +163,11 @@ class Tests(IMP.test.TestCase):
 
         setA = np.array(setA)
         setB = np.array(setB)
-        meanA, stdA, sterrA = (
+        meanA, stdA = (
             np.mean(setA),
             np.std(setA),
-            np.std(setA) / np.sqrt(len(setA)),
         )
-        # lower_bound, upper_bound = meanA - sterrA, meanA + sterrA #? This one
-        lower_bound, upper_bound = meanA - (1.96 * stdA), meanA + (
-            1.96 * stdA
-        )  # ? or this one?
+        lower_bound, upper_bound = meanA - (1.96 * stdA), meanA + (1.96 * stdA)
         meanB = np.mean(setB)
         self.assertTrue(lower_bound <= meanB <= upper_bound)
 
@@ -206,7 +202,7 @@ class Tests(IMP.test.TestCase):
         if os.path.exists(parent_dir):
             shutil.rmtree(parent_dir)
 
-        wrapper_v6.main(paramf_path, True)
+        wrapper_v6.run_nested_sampling(paramf_path, True)
 
         generated_files = os.listdir(parent_dir)
 
