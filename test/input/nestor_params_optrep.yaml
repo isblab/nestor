@@ -8,7 +8,7 @@ parent_dir: '/home/shreyas/Projects/cgopt/imp_integration_stuff/cgimp/imp/module
 num_runs: 1                                         # Number of runs to be launched per candidate representation
 num_cores: 4                                        # Number of replicas to be used for replica exchange MCMC sampling
 trial_name: 'optrep_params'                         # Name to be assigned to the NestOR run
-resolutions: ['10']                            # Candidate representations to be tested. This will be used as topology{x}.txt if using the topology file, else will be passed directly as an argument to the modelings script
+resolutions: ['5','10']                            # Candidate representations to be tested. This will be used as topology{x}.txt if using the topology file, else will be passed directly as an argument to the modelings script
 # '5',
 # NestOR params
 max_usable_threads: 32                              # Maximum number of usable computing cores

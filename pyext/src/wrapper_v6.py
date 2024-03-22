@@ -3,6 +3,7 @@ import sys
 import yaml
 import math
 import shutil
+import argparse
 import subprocess
 import numpy as np
 from mergedeep import merge
@@ -13,6 +14,29 @@ from matplotlib import pyplot as plt
 ###################################################
 #################### Functions ####################
 ###################################################
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-p",
+        dest="paramf",
+        type=str,
+        required=True,
+        help="Absolute path to yaml file containing the input parameters",
+    )
+    parser.add_argument(
+        "-t",
+        dest="topology",
+        action="store_true",
+        help="Whether to use topology file",
+    )
+    parser.add_argument(
+        "-s",
+        dest="skip_calc",
+        action="store_true",
+        help="Running only the plotting functions?",
+    )
+
+    return parser.parse_args()
 
 
 def get_all_toruns(h_params, target_runs):
@@ -87,7 +111,7 @@ def plotter(results: dict, h_params):
     plt.ylabel("log(Evidence)")
     plt.savefig(
         os.path.join(
-            h_params["parent_path"],
+            h_params["parent_dir"],
             f"trial_{h_params['trial_name']}_evidence_errorbarplot.png",
         )
     )
@@ -101,7 +125,7 @@ def plotter(results: dict, h_params):
     plt.ylabel("Nested sampling process time")
     plt.savefig(
         os.path.join(
-            h_params["parent_path"], f"trial_{h_params['trial_name']}_proctime.png"
+            h_params["parent_dir"], f"trial_{h_params['trial_name']}_proctime.png"
         )
     )
 
@@ -114,9 +138,11 @@ def plotter(results: dict, h_params):
     plt.ylabel("Mean time per MCMC step")
     plt.savefig(
         os.path.join(
-            h_params["parent_path"], f"trial_{h_params['trial_name']}_persteptime.png"
+            h_params["parent_dir"], f"trial_{h_params['trial_name']}_persteptime.png"
         )
     )
+
+    plot_evi_proctime(results, h_params)
 
 
 def run_nested_sampling(h_param_file, topology=True):
@@ -193,7 +219,6 @@ def run_nested_sampling(h_param_file, topology=True):
             for _, p in processes.items():
                 if p.poll() is not None:
                     waiting = False
-                # print(p.poll())
 
         (
             processes,
@@ -271,32 +296,85 @@ def run_nested_sampling(h_param_file, topology=True):
         yaml.dump(results, outf)
 
 
+def plot_evi_proctime(nestor_results: dict, h_params: dict):
+    representations: list = []
+    log_evi_mean_sterr: list = []
+    proctime_mean_sterr: list = []
+    for k in nestor_results:
+        representations.append(k.split("_")[-1])
+        log_evi, proctime = [], []
+
+        for k1 in nestor_results[k]:
+            log_evi.append(nestor_results[k][k1]["log_estimated_evidence"])
+            proctime.append(nestor_results[k][k1]["mcmc_step_time"])
+
+        log_evi_mean_sterr.append(
+            (np.mean(log_evi), np.std(log_evi) / math.sqrt(len(log_evi)))
+        )
+        proctime_mean_sterr.append(
+            (np.mean(proctime), np.std(proctime) / math.sqrt(len(proctime)))
+        )
+
+    log_evi_mean_sterr = np.array(log_evi_mean_sterr)
+    proctime_mean_sterr = np.array(proctime_mean_sterr)
+
+    fig, ax1 = plt.subplots()
+    ax1.errorbar(
+        x=representations,
+        y=log_evi_mean_sterr[:, 0],
+        yerr=log_evi_mean_sterr[:, 1],
+        fmt="o",
+        c="dodgerblue",
+        label="Log(Evidence)",
+    )
+    # plt.rcParams["text.usetex"] = True
+    ylabel = "Mean log$Z$"
+    ax1.set_ylabel(ylabel)
+    ax1.set_xlabel("Representations")
+
+    ax2 = plt.twinx(ax=ax1)
+
+    ax2.scatter(
+        x=representations,
+        y=proctime_mean_sterr[:, 0],
+        # yerr=proctime_mean_sterr[:, 1],
+        # fmt="o",
+        c="green",
+        label="NestOR process time",
+    )
+    ax2.set_ylabel("Time per MCMC sampling step (sec)")
+    # fig.legend()
+    print("\n\nCame here\n\n")
+    output_fname: str = os.path.join(
+        h_params["parent_dir"], "sterr_evi_and_proctime.png"
+    )
+
+    plt.savefig(f"{output_fname}.png", dpi=1200)
+    plt.close()
+
+
 ###################################################
 ###################### Main #######################
 ###################################################
 
 if __name__ == "__main__":
-    h_param_file = sys.argv[1]
-
-    if sys.argv[2] == "manual":
-        use_topology = False
-    elif sys.argv[2] == "topology":
-        use_topology = True
+    args = parse_args()
+    h_param_file = args.paramf
+    use_topology = args.topology
 
     with open(h_param_file, "r") as h_paramf:
         h_params = yaml.safe_load(h_paramf)
-    if sys.argv[3] != "skip_calc":
+
+    if not args.skip_calc:
         run_nested_sampling(h_param_file, use_topology)
 
-    else:
-
-        with open(
-            os.path.join(h_params["parent_path"], "nestor_output.yaml"), "r"
-        ) as outf:
-            results = yaml.safe_load(outf)
+    with open(os.path.join(h_params["parent_dir"], "nestor_output.yaml"), "r") as outf:
+        results = yaml.safe_load(outf)
 
     if len(list(results.keys())) > 0:
+        print("Plotting the results")
         plotter(results, h_params)
+        # plot_evi_proctime_together(results)
     else:
         print("\nNone of the runs was successful...!")
     print("Done...!\n\n")
