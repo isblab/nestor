@@ -4,7 +4,7 @@ on:
   push:
   pull_request:
   schedule:
-  - cron: "11 6 * * 5"  # Run at a random time weekly
+  - cron: "19 3 * * 0"  # Run at a random time weekly
 
 jobs:
   build:
@@ -13,31 +13,30 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["2.7", "3.9", "3.12"]
+        python-version: ["2.7", "3.12"]
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: true
-        
     - name: Setup conda and dependencies
       run: |
-        sudo apt update
-        sudo apt-get install libopenmpi-dev
-        python -m pip install --upgrade pip
-        pip install flake8 pytest pytest-cov coverage
         tools/setup_ci.sh ${{ matrix.python-version }}
-        
-        
+        pip install -r requirements.txt
     - name: Test
       run: |
         eval "$(conda shell.bash hook)"
         conda activate python${{ matrix.python-version }}
+        rm -f ${CONDA_PREFIX}/lib/libimp_pmi.so* ${CONDA_PREFIX}/lib/_IMP_pmi.so
+        # Use same C/C++ compiler as conda
+        source ${CONDA_PREFIX}/etc/conda/activate.d/activate-gcc_linux-64.sh
+        source ${CONDA_PREFIX}/etc/conda/activate.d/activate-gxx_linux-64.sh
         mkdir build && cd build
         if test "${{ matrix.python-version }}" = "2.7" ; then PY2=on; else PY2=off; fi
-        cmake .. -DIMP_DIR=${CONDA_PREFIX}/lib/cmake/IMP -DUSE_PYTHON2=${PY2}
+        cmake .. -DIMP_DIR=${CONDA_PREFIX}/lib/cmake/IMP -DUSE_PYTHON2=${PY2} -DCMAKE_CXX_FLAGS="-fprofile-arcs -ftest-coverage"
         make
-        ./setup_environment.sh pytest --cov=.. --cov-branch --cov-report=xml -v ../test/test_*.py 
-        flake8 ../pyext/src/ ../test/
-    - uses: codecov/codecov-action@v1
+        ./setup_environment.sh pytest --cov=.. --cov-branch --cov-report=xml -v ../test/test_*.py ../test/medium_test_*.py test/*/*.py
+        flake8 ../pyext/src/
+        ${GCC/gcc/gcov} $(find . -name "*.gcno")
+    - uses: codecov/codecov-action@v3
