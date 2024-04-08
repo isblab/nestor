@@ -22,7 +22,6 @@ fi
 conda config --remove channels defaults  # get conda-forge, not main, packages
 conda create --yes -q -n python${python_version} -c salilab -c conda-forge python=${python_version} ${pip} ${crypt} scipy matplotlib imp-nightly ${BOOST} gxx_linux-64 eigen cereal swig cmake
 eval "$(conda shell.bash hook)"
-echo "-------------> Came here...!!!"
 conda activate python${python_version}
 conda install mpi4py
 if [ ${python_version} = "2.7" ]; then
