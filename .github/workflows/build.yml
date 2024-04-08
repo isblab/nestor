@@ -24,7 +24,6 @@ jobs:
       run: |
         tools/setup_ci.sh ${{ matrix.python-version }}
         pip install -r requirements.txt
-        conda activate python${{ matrix.python-version }}
         rm -f ${CONDA_PREFIX}/lib/libimp_pmi.so* ${CONDA_PREFIX}/lib/_IMP_pmi.so
         # Use same C/C++ compiler as conda
         source ${CONDA_PREFIX}/etc/conda/activate.d/activate-gcc_linux-64.sh
