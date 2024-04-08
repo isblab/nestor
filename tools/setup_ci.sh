@@ -28,3 +28,4 @@ if [ ${python_version} = "2.7" ]; then
   pip install pytest-cov 'coverage<=6.2' 'pytest-flake8<1.1'
 else
   pip install pytest-cov coverage pytest-flake8
+fi
