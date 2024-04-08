@@ -28,7 +28,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest pytest-cov coverage
         tools/setup_ci.sh ${{ matrix.python-version }}
-        pip install -r requirements.txt
+        
         
     - name: Test
       run: |
