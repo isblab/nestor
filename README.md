@@ -31,16 +31,12 @@
 
 ### Run command
 
-1. Run the NestOR wrapper as follows:
-```python pyext/src/wrapper_v6.py {nestor_param_path} {mode}```
-where, `nestor_param_path` refers to the absolute path to the `nestor_params.yaml`file and mode refers to the mode of representation (`manual`/`topology`). The default choice is topology (does not need to be mentioned), If the representation is defined in the modeling script, use manual argument.
+**Run the NestOR wrapper as follows:**  
+```python pyext/src/wrapper_v6.py -p {nestor_param_path}```
+where, `nestor_param_path` refers to the absolute path to the `nestor_params.yaml`file. If using topology file for representing the system, use `-t` flag. This flag can be ommitted if the representation is defined in the modeling script. If only the plotting functionalities of NestOR are to be used, run the above command with `-s` flag.
 
-2. Run the following command:
-```python figure_scripts/plot_evidence_proctime_together.py {path} {name}```
-where, `path` refers to the parent_dir in NestOR params file and `name` refers to the name of the assembly for which the representations is being optimized.
 
 **Note**
-
 _One_ `NestOR run` corresponds to the set of all nested sampling runs for all candidate representations._
 One can also compare results from `NestOR runs` with different parameter settings by running `python pyext/src/compare_runs_v2_w_pyplot.py {comparison_title} run_set1 run_set2 ...` where comparison_title is the title for the runs to be compared, run_set1 and run_set2 are the NestOR runs to be compared.
 
@@ -52,9 +48,6 @@ Step 1  in the Run command above, _i.e._ one NestOR run generates these plots:
 
 1. **Evidence**: The plot (`*_params_evidence_errorbarplot.png`) shows the mean values of evidence for all the candidate representations along with errorbars showing the standard error on the mean.
 2. **MCMC per-step time**: The plot (`*_params_persteptime.png`) shows the time required to sample one MCMC step per run. This is computed as `(time taken for iteration 0)/((number of initial frames)*(number of MCMC steps per frame))`
-
-Step 2 in the `Run command` above generates this additional plot.
-
 3. **Evidence and MCMC per-step time per representation** : The plot (`*sterr_evi_and_proctime.png`) compares evidences and their sampling efficiency across representations.
 
 ### Output YAML file
