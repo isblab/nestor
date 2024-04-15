@@ -12,5 +12,5 @@ expected_files = [
 if "runs" in os.listdir(os.getcwd()):
     shutil.rmtree(os.path.join(os.getcwd(), "runs"))
 
-paramf_path = "/home/shreyas/Projects/cgopt/imp_integration_stuff/cgimp/imp/modules/nestor/test/input/nestor_params_optrep.yaml"
+paramf_path = "test/input/nestor_params_optrep.yaml"
 wrapper_exitcode = wrapper_v6.main(paramf_path, True)

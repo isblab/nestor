@@ -13,7 +13,6 @@ import IMP.pmi.restraints.crosslinking
 import IMP.pmi.tools
 import IMP.pmi.macros
 import IMP.nestor.wrapper_v6 as wrapper_v6
-import subprocess
 
 
 class Tests(IMP.test.TestCase):
@@ -113,6 +112,21 @@ class Tests(IMP.test.TestCase):
         ) as yaml_out:
             yaml.dump(results, yaml_out)
 
+    def check_individual_run_output_file_creation(self):
+        """
+        Check if all output files are created from the Nested Sampling run"""
+        expected_files = [
+            "live_loglixi.png",
+            "lixi.png",
+            "log_lixi.png",
+            "nested_0.rmf3",
+            "temporary_output.yaml",
+        ]
+
+        all_files_in_dir = os.listdir(os.getcwd())
+        for exp_file in expected_files:
+            self.assertTrue(exp_file in all_files_in_dir)
+
     def test_ns_initial_sampling(self):
         """Test initial sampling and likelihood parsing"""
         ns = self.prepare_system("topology5.txt")
@@ -137,6 +151,7 @@ class Tests(IMP.test.TestCase):
                 ns = self.prepare_system("topology5.txt")
                 ns_output, _ = ns.execute_nested_sampling2()
                 new_results.append(ns_output["log_estimated_evidence"])
+                self.check_individual_run_output_file_creation()
 
             mean_expected, std_expected = np.mean(np.array(expected_logz)), np.std(
                 np.array(expected_logz)
@@ -147,69 +162,6 @@ class Tests(IMP.test.TestCase):
             lower_bound = mean_expected - (1.96 * std_expected)
             upper_bound = mean_expected + (1.96 * std_expected)
             self.assertTrue(lower_bound <= mean_new <= upper_bound)
-
-    def ccctest_self_consistency(self):
-        """Check if multiple sets of runs return similar evidence estimates"""
-        setA = []
-        setB = []
-        for _ in range(3):
-            nsA = self.prepare_system("topology5.txt")
-            ns_outputA, _ = nsA.execute_nested_sampling2()
-            setA.append(ns_outputA["log_estimated_evidence"])
-
-            nsB = self.prepare_system("topology5.txt")
-            ns_outputB, _ = nsB.execute_nested_sampling2()
-            setB.append(ns_outputB["log_estimated_evidence"])
-
-        setA = np.array(setA)
-        setB = np.array(setB)
-        meanA, stdA = (
-            np.mean(setA),
-            np.std(setA),
-        )
-        lower_bound, upper_bound = meanA - (1.96 * stdA), meanA + (1.96 * stdA)
-        meanB = np.mean(setB)
-        self.assertTrue(lower_bound <= meanB <= upper_bound)
-
-    def ccctest_individual_run_output_file_creation(self):
-        ns = self.prepare_system("topology5.txt")
-        ns.execute_nested_sampling2()
-        expected_files = [
-            "live_loglixi.png",
-            "lixi.png",
-            "log_lixi.png",
-            "nested_0.rmf3",
-            "temporary_output.yaml",
-        ]
-
-        all_files_in_dir = os.listdir(os.getcwd())
-        for exp_file in expected_files:
-            self.assertTrue(exp_file in all_files_in_dir)
-
-    def ccctest_wrapper_run_output_file_creation(self):
-        expected_files = [
-            "trial_optrep_params_evidence_errorbarplot.png",
-            "trial_optrep_params_persteptime.png",
-            "trial_optrep_params_proctime.png",
-            "nestor_output.yaml",
-        ]
-
-        paramf_path = self.get_input_file_name("nestor_params_optrep.yaml")
-        with open(paramf_path, "r") as paramf:
-            params = yaml.safe_load(paramf)
-        parent_dir = params["parent_dir"]
-
-        if os.path.exists(parent_dir):
-            shutil.rmtree(parent_dir)
-
-        wrapper_v6.run_nested_sampling(paramf_path, True)
-
-        generated_files = os.listdir(parent_dir)
-
-        for exp_file in expected_files:
-            exp_file = os.path.join(parent_dir, exp_file)
-            print(exp_file)
-            self.assertTrue(exp_file in generated_files)
 
 
 if __name__ == "__main__":
