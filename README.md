@@ -1,4 +1,4 @@
-[![PubMed](https://salilab.org/imp-systems/static/images/pubmed.png)](https://pubmed.ncbi.nlm.nih.gov/xyz/)     #TODO: Replace xyz with PubMed ID
+[![PubMed](https://salilab.org/imp-systems/static/images/pubmed.png)](https://pubmed.ncbi.nlm.nih.gov/38391029/)
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10360718.svg)](https://doi.org/10.5281/zenodo.10360718)
 
@@ -6,6 +6,11 @@
 # **NestOR: Nested Sampling-based Optimization of Representation for Integrative Structural Modeling**
 
 ![graphical_abstract_nestor](https://github.com/isblab/nestor/assets/8314735/74b4aa65-1f64-45e1-89ac-5bcb69ecb27d)
+
+## **Publication and Data**
+* Shreyas Arvindekar, Aditi S Pathak, Kartik Majila, Shruthi Viswanath, Optimizing representations for integrative structural modeling using Bayesian model selection, Bioinformatics, Volume 40, Issue 3, March 2024, btae106, at [DOI](https://doi.org/10.1093/bioinformatics/btae106).
+* Data is deposited in [Zenodo](https://www.doi.org/10.5281/zenodo.10360718)
+
 
 ## **Installation:**
 ### **Dependencies:**  
@@ -15,8 +20,6 @@
 ### **NestOR installation:**  
 1. Compile IMP from the souce code to your choice of directory
 2. Clone this repository and replace `imp/modules/nestor/` with it
-2. **_(deprecated)_** Replace the `macros.py` in `imp/modules/pmi/pyext/src/` with the `macros.py` in the current repository. Make sure the file is named `macros.py` in the destination directory. Similarly, replace the restraints directory in `imp/modules/pmi/pyext/src/` with the restraints directory in the present repository.  
-**_#TODO: Remove deprecated point_**
 
 ## **Running NestOR:**
 
@@ -92,7 +95,7 @@ This file is generated upon completion of step 1 in the `Run command` above.
 
 
 ## **Information**
-**Author(s):** Shreyas Arvindekar, Aditi Pathak, Kartik Majila, Shruthi Viswanath  
+**Author(s):** Shreyas Arvindekar, Shruthi Viswanath  
 **Date**: April 7th, 2023  
 **License:** [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 This work is licensed under the Creative Commons Attribution-ShareAlike 4.0
@@ -101,4 +104,4 @@ International License.
 **Testable:** Yes  
 **Parallelizeable:** Yes  
 **Publications:**  Arvindekar, S., Viswanath, S. Optimizing representations for integrative structural modeling using bayesian model selection. DOI: [10.1093/bioinformatics/btae106](https://doi.org/10.1093/bioinformatics/btae106).     
-**_#TODO: Make the publication in appropriate format_**
+
