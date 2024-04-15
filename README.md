@@ -8,7 +8,7 @@
 ![graphical_abstract_nestor](https://github.com/isblab/nestor/assets/8314735/74b4aa65-1f64-45e1-89ac-5bcb69ecb27d)
 
 ## **Publication and Data**
-* Shreyas Arvindekar, Aditi S Pathak, Kartik Majila, Shruthi Viswanath, Optimizing representations for integrative structural modeling using Bayesian model selection, Bioinformatics, Volume 40, Issue 3, March 2024, btae106, at [DOI](https://doi.org/10.1093/bioinformatics/btae106).
+* Shreyas Arvindekar, Aditi S Pathak, Kartik Majila, Shruthi Viswanath, __Optimizing representations for integrative structural modeling using Bayesian model selection__, _Bioinformatics_, Volume 40, Issue 3, March 2024, btae106, at [DOI](https://doi.org/10.1093/bioinformatics/btae106).
 * Data is deposited in [Zenodo](https://www.doi.org/10.5281/zenodo.10360718)
 
 
