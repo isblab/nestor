@@ -1,5 +1,4 @@
 import os
-import sys
 import yaml
 import math
 import shutil
@@ -12,7 +11,7 @@ from matplotlib import pyplot as plt
 
 
 ###################################################
-#################### Functions ####################
+#                    Functions
 ###################################################
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -62,13 +61,15 @@ def get_curr_processes_and_terminated_runs(processes: dict):
         if proc.returncode == 11 or proc.returncode == 12:
             faulty_runs.append((run_deets, proc))
             if proc.returncode == 11:
-                shutil.rmtree(os.path.join(run_deets[0], f"run_{run_deets[1]}"))
+                shutil.rmtree(os.path.join(run_deets[0],
+                                           f"run_{run_deets[1]}"))
         elif proc.returncode == 0:
             successful_runs.append((run_deets, proc))
 
     for run in terminated_runs:
         print(
-            f"Terminated: {run[0].split('/')[-1]}, run_{run[1]} with exit code: {processes[run].returncode}"
+            f"Terminated: {run[0].split('/')[-1]}, run_{run[1]} with "
+            f"exit code: {processes[run].returncode}"
         )
         if processes[run].returncode != 0:
             print(f"Error:\n{processes[run].stderr.read()}")
@@ -125,7 +126,8 @@ def plotter(results: dict, h_params):
     plt.ylabel("Nested sampling process time")
     plt.savefig(
         os.path.join(
-            h_params["parent_dir"], f"trial_{h_params['trial_name']}_proctime.png"
+            h_params["parent_dir"],
+            f"trial_{h_params['trial_name']}_proctime.png"
         )
     )
 
@@ -138,7 +140,8 @@ def plotter(results: dict, h_params):
     plt.ylabel("Mean time per MCMC step")
     plt.savefig(
         os.path.join(
-            h_params["parent_dir"], f"trial_{h_params['trial_name']}_persteptime.png"
+            h_params["parent_dir"],
+            f"trial_{h_params['trial_name']}_persteptime.png"
         )
     )
 
@@ -185,7 +188,8 @@ def run_nested_sampling(h_param_file, topology=True):
                     os.chdir(f"run_{run_id}")
 
                     if topology:
-                        topf = f"topology{res.split('/')[-1].split('_')[-1]}.txt"
+                        topf = \
+                            f"topology{res.split('/')[-1].split('_')[-1]}.txt"
                     else:
                         topf = res.split("/")[-1].split("_")[-1]
 
@@ -234,14 +238,18 @@ def run_nested_sampling(h_param_file, topology=True):
         if len(curr_faulty_runs) != 0:
             for fr, p in curr_faulty_runs:
                 if p.returncode == 11:
-                    print(f"Will relaunch ({fr[0].split('/')[-1]}, run_{fr[1]})")
+                    print(f"Will relaunch ({fr[0].split('/')[-1]}, "
+                          f"run_{fr[1]})")
                     torun.append(fr)
                 elif p.returncode == 12:
                     print(
-                        f"Terminated: {fr[0].split('/')[-1]}, run_{fr[1]} with exit code: {p.returncode}"
+                        f"Terminated: {fr[0].split('/')[-1]}, run_{fr[1]} "
+                        f"with exit code: {p.returncode}"
                     )
                     print(
-                        f"{fr[0].split('/')[-1]}, run_{fr[1]} ran out of maximum allowed iterations before converging. Will not relaunch it..."
+                        f"{fr[0].split('/')[-1]}, run_{fr[1]} ran out of "
+                        f"maximum allowed iterations before converging. "
+                        f"Will not relaunch it..."
                     )
 
     print(f"Waiting for {len(processes.keys())} processes to terminate...")
@@ -262,7 +270,7 @@ def run_nested_sampling(h_param_file, topology=True):
         for proc in successful_runs:
             completed_runs.append(proc)
 
-    ############## Preparing the output ###############
+    # Preparing the output
 
     print("Performing housekeeping tasks")
 
@@ -354,7 +362,7 @@ def plot_evi_proctime(nestor_results: dict, h_params: dict):
 
 
 ###################################################
-###################### Main #######################
+#                      Main
 ###################################################
 
 if __name__ == "__main__":
@@ -368,7 +376,8 @@ if __name__ == "__main__":
     if not args.skip_calc:
         run_nested_sampling(h_param_file, use_topology)
 
-    with open(os.path.join(h_params["parent_dir"], "nestor_output.yaml"), "r") as outf:
+    with open(os.path.join(h_params["parent_dir"],
+                           "nestor_output.yaml"), "r") as outf:
         results = yaml.safe_load(outf)
 
     if len(list(results.keys())) > 0:

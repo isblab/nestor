@@ -5,13 +5,6 @@ import time
 import math
 import yaml
 import pickle
-import RMF
-import IMP
-import IMP.pmi
-import IMP.rmf
-import IMP.isd
-import IMP.pmi.dof
-import numpy as np
 from mpi4py import MPI
 
 
@@ -31,7 +24,8 @@ class NestedSampling:
         for restraint in nestor_restraints:
             if restraint.weight != 0:
                 raise ValueError(
-                    "Weight of all restraints in nestor_restraints must be set to 0"
+                    "Weight of all restraints in nestor_restraints "
+                    "must be set to 0"
                 )
 
         self.rex_macro.nestor_restraints = nestor_restraints
@@ -63,7 +57,8 @@ class NestedSampling:
         start_time = time.time()
         self.rex_macro.execute_macro()
         end_time = time.time()
-        per_frame_sampling_time = (end_time - start_time) / self.num_init_frames
+        per_frame_sampling_time = ((end_time - start_time)
+                                   / self.num_init_frames)
         self.mcmc_step_time = (
             per_frame_sampling_time / self.rex_macro.vars["monte_carlo_steps"]
         )
@@ -111,7 +106,8 @@ class NestedSampling:
         if (current_Li / previous_Li) < (previous_Xi / current_Xi):
             self.plateau_hits += 1
             print(
-                f"{'---'*20}\nPlateau detector hits: {self.plateau_hits}/{self.max_plateau_hits}"
+                f"{'---'*20}\nPlateau detector hits: "
+                f"{self.plateau_hits}/{self.max_plateau_hits}"
             )
         else:
             self.plateau_hits = 0
@@ -125,7 +121,7 @@ class NestedSampling:
 
         self.toc = time.time()
 
-        if not "error" in self.termination_mode.lower():
+        if "error" not in self.termination_mode.lower():
             print(f"Estimated evidence sampled: {self.Z}")
             self.exit_code = 0
             try:
@@ -197,7 +193,8 @@ class NestedSampling:
         self.comm_obj.Barrier()
 
         print(
-            f"Exit code from the macros after communication: {self.exit_code} at rank: {self.comm_obj.Get_rank()}"
+            f"Exit code from the macros after communication: {self.exit_code} "
+            f"at rank: {self.comm_obj.Get_rank()}"
         )
 
         if self.exit_code is None:
@@ -205,7 +202,8 @@ class NestedSampling:
             self.comm_obj.Barrier()
             if base_process:
                 print(
-                    f"{'-'*50}\nTest run complete, no NaN found. Continuing...\n{'-'*50}\n\n"
+                    f"{'-'*50}\nTest run complete, no NaN found. "
+                    f"Continuing...\n{'-'*50}\n\n"
                 )
             self.comm_obj.Barrier()
 
@@ -225,16 +223,19 @@ class NestedSampling:
                 self.exit_code = self.comm_obj.bcast(self.exit_code, root=0)
 
                 if self.exit_code is not None:
-                    #'run.log' in os.listdir('./') or 'error.log' in os.listdir('./'):
                     # run log will exist if
-                    # a. parse_likelihoods had a nan error in the test iter, called terminator.
-                    # b. convergence criterion plateau reached, called terminator.
-                    # c. convergence criterion max_failed_iterations reached, called terminator.
+                    # a. parse_likelihoods had a nan error in the test iter,
+                    #    called terminator.
+                    # b. convergence criterion plateau reached, called
+                    #    terminator.
+                    # c. convergence criterion max_failed_iterations reached,
+                    #    called terminator.
                     break
 
                 if not self.finished:
-                    # Other processes should not sample more models as convergence criteria i.e.
-                    # a. max_failed_iterations or b. plateau triggered and the likelihoods list is
+                    # Other processes should not sample more models as
+                    # convergence criteria i.e. a. max_failed_iterations
+                    # or b. plateau triggered and the likelihoods list is
                     # unraveled to accumulate Z/H.
                     self.rex_macro.execute_macro()
                 self.comm_obj.Barrier()
@@ -279,7 +280,11 @@ class NestedSampling:
 
                         true_iter += 1
                         print(
-                            f'\n-----> True iteration: {true_iter} {" "*5} Calculation iteration: {i} {" "*5} Failed iteration: {self.failed_iter} {" "*5} Evidence: {self.Z} {" "*5} Terminating: {self.finished}\n'
+                            f'\n-----> True iteration: {true_iter} {" "*5} '
+                            f'Calculation iteration: {i} {" "*5} '
+                            f'Failed iteration: {self.failed_iter} {" "*5} '
+                            f'Evidence: {self.Z} {" "*5} '
+                            f'Terminating: {self.finished}\n'
                         )
                         if true_iter % 10 == 0:
                             from math import log
@@ -312,10 +317,11 @@ class NestedSampling:
                 true_iter = self.comm_obj.bcast(true_iter, root=0)
                 if true_iter == self.nestor_niter:
                     self.termination_mode = (
-                        "Error: MaxIterations reached without convergence criteria"
-                    )
+                        "Error: MaxIterations reached without convergence "
+                        "criteria")
                     self.exit_code = 12
-                    self.exit_code = self.comm_obj.bcast(self.exit_code, root=0)
+                    self.exit_code = self.comm_obj.bcast(self.exit_code,
+                                                         root=0)
                     self.terminator(
                         iteration=true_iter,
                         plateau_hits=self.plateau_hits,
