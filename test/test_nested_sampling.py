@@ -1,5 +1,4 @@
 import os
-import shutil
 import numpy as np
 import yaml
 import IMP
@@ -9,10 +8,9 @@ from IMP.nestor import nestor
 import IMP.pmi.topology
 import IMP.pmi.io.crosslink
 import IMP.pmi.restraints.stereochemistry
-import IMP.pmi.restraints.crosslinking
+import IMP.pmi.restraints.crosslinking as pmi_crosslinking
 import IMP.pmi.tools
 import IMP.pmi.macros
-import IMP.nestor.wrapper_v6 as wrapper_v6
 
 
 class Tests(IMP.test.TestCase):
@@ -48,20 +46,20 @@ class Tests(IMP.test.TestCase):
         xldbkc.set_residue2_key("R2")
         xldb_test = IMP.pmi.io.crosslink.CrossLinkDataBase()
         xldb_test.create_set_from_file(
-            file_name=self.get_input_file_name("xl_dataset_test_io_crosslink_map.txt"),
+            file_name=self.get_input_file_name(
+                "xl_dataset_test_io_crosslink_map.txt",
+            ),
             converter=xldbkc,
         )
-        xlr_test = (
-            IMP.pmi.restraints.crosslinking.CrossLinkingMassSpectrometryRestraint(
-                root_hier=root_hier,
-                database=xldb_test,
-                length=16,
-                resolution=1,
-                slope=0.0001,
-                label="test",
-                weight=0,
-                linker=ihm.cross_linkers.edc,
-            )
+        xlr_test = pmi_crosslinking.CrossLinkingMassSpectrometryRestraint(
+            root_hier=root_hier,
+            database=xldb_test,
+            length=16,
+            resolution=1,
+            slope=0.0001,
+            label="test",
+            weight=0,
+            linker=ihm.cross_linkers.edc,
         )
         nestor_restraints.append(xlr_test)
 
@@ -80,15 +78,15 @@ class Tests(IMP.test.TestCase):
 
         rex = IMP.pmi.macros.ReplicaExchange(
             mdl,
-            root_hier=root_hier,  # pass the root hierarchy
+            root_hier=root_hier,
             monte_carlo_temperature=1.0,
             replica_exchange_minimum_temperature=1.0,
             replica_exchange_maximum_temperature=2.4,
-            monte_carlo_sample_objects=dof.get_movers(),  # pass all objects to be moved ( almost always dof.get_movers() )
-            global_output_directory="ns_test_outputs/",  # The output directory for this sampling run.
-            monte_carlo_steps=10,  # Number of MC steps between writing frames
-            number_of_best_scoring_models=0,  # set >0 to store best PDB files (but this is slow)
-            number_of_frames=0,  # Total number of frames to run / write to the RMF file.
+            monte_carlo_sample_objects=dof.get_movers(),
+            global_output_directory="ns_test_outputs/",
+            monte_carlo_steps=10,
+            number_of_best_scoring_models=0,
+            number_of_frames=0,
             use_nestor=True,
         )
         ns = nestor.NestedSampling(
@@ -100,7 +98,10 @@ class Tests(IMP.test.TestCase):
         return ns
 
     def run_base_run(self):
-        """Was used to get the preliminary output for test_reproducibility() function. It is not used anymore."""
+        """
+        Was used to get the preliminary output for test_reproducibility()
+        function. It is not used anymore.
+        """
         results = {}
         for i in range(10):
             ns = self.prepare_system(topology_fname="topology5.txt")
@@ -133,17 +134,26 @@ class Tests(IMP.test.TestCase):
         ns.sample_initial_frames()
         likelihoods = ns.parse_likelihoods(iteration=0)
 
-        with open(self.get_input_file_name("nestor_params_optrep.yaml"), "r") as yamf:
+        with open(
+            self.get_input_file_name("nestor_params_optrep.yaml"),
+            "r",
+        ) as yamf:
             expectations = yaml.safe_load(yamf)
 
-        self.assertEqual(len(likelihoods), int(expectations["num_init_frames"]))
+        self.assertEqual(
+            len(likelihoods),
+            int(expectations["num_init_frames"]),
+        )
 
     def test_reproducibility(self):
         """Check if the results are reproducible"""
-        with open(self.get_input_file_name("nestor_output.yaml"), "r") as ori_out:
-            expected_result = yaml.safe_load(ori_out)
+        with open(
+            self.get_input_file_name("nestor_output.yaml"),
+            "r",
+        ) as ori_out:
+            exp_result = yaml.safe_load(ori_out)
             expected_logz = [
-                expected_result[i]["log_estimated_evidence"] for i in expected_result
+                exp_result[i]["log_estimated_evidence"] for i in exp_result
             ]
 
             new_results = []
@@ -153,9 +163,8 @@ class Tests(IMP.test.TestCase):
                 new_results.append(ns_output["log_estimated_evidence"])
                 self.check_individual_run_output_file_creation()
 
-            mean_expected, std_expected = np.mean(np.array(expected_logz)), np.std(
-                np.array(expected_logz)
-            )
+            mean_expected = np.mean(np.array(expected_logz))
+            std_expected = np.std(np.array(expected_logz))
 
             mean_new = np.mean(np.array(new_results))
 
