@@ -5,3 +5,7 @@ test/runs
 test/excluded.None.xl.db
 test/included.None.xl.db
 test/missing.None.xl.db
+ModuleBuild.cmake
+CMakeModules
+*/CMakeLists.txt
+Files.cmake
