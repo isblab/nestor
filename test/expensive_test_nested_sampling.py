@@ -4,7 +4,7 @@ import yaml
 import IMP
 import ihm.cross_linkers
 import IMP.test
-from IMP.nestor import nestor
+import IMP.nestor
 import IMP.pmi.topology
 import IMP.pmi.io.crosslink
 import IMP.pmi.restraints.stereochemistry
@@ -93,7 +93,7 @@ class Tests(IMP.test.TestCase):
             number_of_frames=0,
             use_nestor=True,
         )
-        ns = nestor.NestedSampling(
+        ns = IMP.nestor.NestedSampling(
             rex_macro=rex,
             nestor_restraints=nestor_restraints,
             h_param_file=self.get_input_file_name("nestor_params_optrep.yaml"),
