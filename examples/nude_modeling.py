@@ -21,7 +21,7 @@ import ihm.cross_linkers
 import IMP.pmi.restraints.crosslinking
 import IMP.pmi.restraints.em
 import IMP.pmi.dof
-from IMP.nestor.nestor import NestedSampling
+from IMP.nestor import NestedSampling
 import IMP.atom
 import contextlib
 
