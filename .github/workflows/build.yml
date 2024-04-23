@@ -33,6 +33,6 @@ jobs:
         cmake .. -DIMP_DIR=${CONDA_PREFIX}/lib/cmake/IMP -DUSE_PYTHON2=${PY2}
         make
         pip install numpy matplotlib mergedeep pyyaml
-        ./setup_environment.sh pytest --cov=.. --cov-branch --cov-report=xml -v ../test/test_*.py 
+        ./setup_environment.sh pytest --cov=.. --cov-branch --cov-report=xml -v ../test/expensive_test_*.py 
         flake8 ../pyext/src/
     - uses: codecov/codecov-action@v3
