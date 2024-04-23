@@ -17,8 +17,12 @@ class Tests(IMP.test.TestCase):
     def prepare_system(self, topology_fname="topology5.txt"):
         """Set the system up for Nested Sampling runs"""
         topology_file = self.get_input_file_name(topology_fname)
+        input_dir = os.path.dirname(topology_file)
         mdl = IMP.Model()
-        t = IMP.pmi.topology.TopologyReader(topology_file)
+        t = IMP.pmi.topology.TopologyReader(topology_file,
+                                            pdb_dir=input_dir,
+                                            fasta_dir=input_dir,
+                                            gmm_dir=input_dir)
         bs = IMP.pmi.macros.BuildSystem(mdl)
         bs.add_state(t)
 
