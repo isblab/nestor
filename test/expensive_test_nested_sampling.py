@@ -131,6 +131,9 @@ class Tests(IMP.test.TestCase):
         all_files_in_dir = os.listdir(os.getcwd())
         for exp_file in expected_files:
             self.assertTrue(exp_file in all_files_in_dir)
+        # clean up
+        for exp_file in expected_files:
+            os.unlink(exp_file)
 
     def test_ns_initial_sampling(self):
         """Test initial sampling and likelihood parsing"""
