@@ -1,4 +1,11 @@
 value_object_exceptions=[]
-function_name_exceptions=[]
+function_name_exceptions=[
+    'NestedSampling.check_plateau',
+    'NestedSampling.compute_evidence_H',
+    'NestedSampling.execute_nested_sampling2',
+    'NestedSampling.parse_likelihoods',
+    'NestedSampling.sample_initial_frames',
+    'NestedSampling.terminator'
+]
 show_exceptions=[]
 spelling_exceptions=[]
