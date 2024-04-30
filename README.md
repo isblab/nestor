@@ -3,25 +3,27 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10360718.svg)](https://doi.org/10.5281/zenodo.10360718)
 
 
-# **NestOR: Nested Sampling-based Optimization of Representation for Integrative Structural Modeling**
+# NestOR: Nested Sampling-based Optimization of Representation for Integrative Structural Modeling
+
+Python module to perform Nested Sampling-based optimization of representation for integrative structural modeling
 
 ![graphical_abstract_nestor](https://github.com/isblab/nestor/assets/8314735/74b4aa65-1f64-45e1-89ac-5bcb69ecb27d)
 
-## **Publication and Data**
+## Publication and Data
 * Shreyas Arvindekar, Aditi S Pathak, Kartik Majila, Shruthi Viswanath, __Optimizing representations for integrative structural modeling using Bayesian model selection__, _Bioinformatics_, Volume 40, Issue 3, March 2024, btae106, at [DOI](https://doi.org/10.1093/bioinformatics/btae106).
 * Data is deposited in [Zenodo](https://www.doi.org/10.5281/zenodo.10360718)
 
 
-## **Installation:**
-### **Dependencies:**  
+## Installation:
+### Dependencies:  
 * IMP (compiled from the source code). See [IMP installation](https://github.com/salilab/imp)
 * See `requirements.txt` for Python dependencies
 
-### **NestOR installation:**  
+### NestOR installation:  
 1. Compile IMP from the souce code to your choice of directory
 2. Clone this repository and replace `imp/modules/nestor/` with it
 
-## **Running NestOR:**
+## Running NestOR:
 
 ### Inputs
 
@@ -94,7 +96,7 @@ This file is generated upon completion of step 1 in the `Run command` above.
 **_If a run terminates with `exit code = 12`, the run is considered incomplete (and is not rerun) and its results are not considered valid, i.e. these are not plotted and not used to infer optimal representation. Results from runs with exit codes 0 and 13 are used to infer the optimal representation_**
 
 
-## **Information**
+## Information
 **Author(s):** Shreyas Arvindekar, Shruthi Viswanath  
 **Date**: April 7th, 2023  
 **License:** [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
@@ -104,4 +106,3 @@ International License.
 **Testable:** Yes  
 **Parallelizeable:** Yes  
 **Publications:**  Arvindekar, S., Viswanath, S. Optimizing representations for integrative structural modeling using bayesian model selection. DOI: [10.1093/bioinformatics/btae106](https://doi.org/10.1093/bioinformatics/btae106).     
-
