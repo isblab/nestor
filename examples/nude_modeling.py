@@ -29,8 +29,9 @@ import contextlib
 import os
 import sys
 
+IMP.setup_from_argv(sys.argv, "Application of NestOR to the NuDe subcomplex")
 
-dat_dir = "/home/shreyas/Projects/cgopt/imp_integration_stuff/cgimp/imp/modules/nestor/examples/input/"
+dat_dir = IMP.nestor.get_example_path("input")
 run_output_dir = "run_" + sys.argv[1]
 topology_file = dat_dir + sys.argv[2]
 h_param_file = sys.argv[3]
