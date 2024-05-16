@@ -361,11 +361,7 @@ def plot_evi_proctime(nestor_results: dict, h_params: dict):
     plt.close()
 
 
-###################################################
-#                      Main
-###################################################
-
-if __name__ == "__main__":
+def main():
     args = parse_args()
     h_param_file = args.paramf
     use_topology = args.topology
@@ -387,3 +383,10 @@ if __name__ == "__main__":
     else:
         print("\nNone of the runs was successful...!")
     print("Done...!\n\n")
+
+###################################################
+#                      Main
+###################################################
+
+if __name__ == "__main__":
+    main()

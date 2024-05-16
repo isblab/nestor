@@ -33,32 +33,32 @@ IMP.setup_from_argv(sys.argv, "Application of NestOR to the NuDe subcomplex")
 
 
 # --- remove this section
-print("This example does not work out of the box. Please read the README "
-      "file to obtain necessary inputs and then remove this section "
-      "of the script.")
-sys.exit(0)
+# print("This example does not work out of the box. Please read the README "
+#       "file to obtain necessary inputs and then remove this section "
+#       "of the script.")
+# sys.exit(0)
 # --- remove this section
 
 
 dat_dir = IMP.nestor.get_example_path("input")
-run_output_dir = "run_" + sys.argv[1]
-topology_file = dat_dir + sys.argv[2]
-h_param_file = sys.argv[3]
+run_output_dir = "run_" + "0" 
+topology_file = os.path.join(dat_dir, "topology50.txt")
+h_param_file = os.path.join(dat_dir, "nestor_params_optrep.yaml")
 
 max_shuffle_core = 5
 max_shuffle_set2 = 50
 rex_max_temp = 2.4
 
 # Identify data files
-sampling_adh_xl_data = dat_dir + "xlms/sampling_filtered_adh.dat"
-sampling_bs3dss_xl_data = dat_dir + "xlms/sampling_filtered_bs3dss.dat"
-sampling_dmtmm_xl_data = dat_dir + "xlms/sampling_filtered_dmtmm.dat"
+sampling_adh_xl_data = os.path.join(dat_dir, "xlms/sampling_filtered_adh.dat")
+sampling_bs3dss_xl_data = os.path.join(dat_dir, "xlms/sampling_filtered_bs3dss.dat")
+sampling_dmtmm_xl_data = os.path.join(dat_dir, "xlms/sampling_filtered_dmtmm.dat")
 
-evi_adh_xl_data = dat_dir + "/xlms/evicalc_filtered_adh.dat"
-evi_bs3dss_xl_data = dat_dir + "/xlms/evicalc_filtered_adh.dat"
-evi_dmtmm_xl_data = dat_dir + "/xlms/evicalc_filtered_adh.dat"
+evi_adh_xl_data = os.path.join(dat_dir, "xlms/evicalc_filtered_adh.dat")
+evi_bs3dss_xl_data = os.path.join(dat_dir, "xlms/evicalc_filtered_adh.dat")
+evi_dmtmm_xl_data = os.path.join(dat_dir, "xlms/evicalc_filtered_adh.dat")
 
-gmm_data = dat_dir + "gmm/emd_22904.gmm.40.txt"
+gmm_data = os.path.join(dat_dir, "gmm/emd_22904.gmm.40.txt")
 # Restraint weights
 intra_xl_weight = 1.0
 inter_xl_weight = 10.0
@@ -177,16 +177,16 @@ def modeling(output_dir, topology_file, h_param_file):
     )
     xlr_adh_sampling = (
         IMP.pmi.restraints.crosslinking.CrossLinkingMassSpectrometryRestraint(
-            root_hier=root_hier,  # Must pass the root hierarchy to the system
-            database=xldb_adh_sampling,  # The crosslink database.
-            length=25,  # The crosslinker plus side chain length
-            resolution=1,  # The resolution at which to evaluate the crosslink
-            slope=0.0001,  # This adds a linear term to the scoring function
-            label="adh",  #   to bias crosslinks towards each other
+            root_hier=root_hier,
+            database=xldb_adh_sampling,
+            length=25,
+            resolution=1,
+            slope=0.0001,
+            label="adh",
             weight=xl_weight,
             linker=ihm.cross_linkers.edc,
         )
-    )  # Scaling factor for the restraint score.
+    )
 
     xldb_bs3dss_sampling = IMP.pmi.io.crosslink.CrossLinkDataBase()
     xldb_bs3dss_sampling.create_set_from_file(
@@ -194,16 +194,16 @@ def modeling(output_dir, topology_file, h_param_file):
     )
     xlr_bs3dss_sampling = (
         IMP.pmi.restraints.crosslinking.CrossLinkingMassSpectrometryRestraint(
-            root_hier=root_hier,  # Must pass the root hierarchy to the system
-            database=xldb_bs3dss_sampling,  # The crosslink database.
-            length=25,  # The crosslinker plus side chain length
-            resolution=1,  # The resolution at which to evaluate the crosslink
-            slope=0.0001,  # This adds a linear term to the scoring function
-            label="bs3dss",  #   to bias crosslinks towards each other
+            root_hier=root_hier,
+            database=xldb_bs3dss_sampling,
+            length=25,
+            resolution=1,
+            slope=0.0001,
+            label="bs3dss",
             weight=xl_weight,
             linker=ihm.cross_linkers.bs3,
         )
-    )  # Scaling factor for the restraint score.
+    )
 
     xldb_dmtmm_sampling = IMP.pmi.io.crosslink.CrossLinkDataBase()
     xldb_dmtmm_sampling.create_set_from_file(
@@ -211,16 +211,16 @@ def modeling(output_dir, topology_file, h_param_file):
     )
     xlr_dmtmm_sampling = (
         IMP.pmi.restraints.crosslinking.CrossLinkingMassSpectrometryRestraint(
-            root_hier=root_hier,  # Must pass the root hierarchy to the system
-            database=xldb_dmtmm_sampling,  # The crosslink database.
-            length=16,  # The crosslinker plus side chain length
-            resolution=1,  # The resolution at which to evaluate the crosslink
-            slope=0.0001,  # This adds a linear term to the scoring function
-            label="dmtmm",  #   to bias crosslinks towards each other
+            root_hier=root_hier,
+            database=xldb_dmtmm_sampling,
+            length=16,
+            resolution=1,
+            slope=0.0001,
+            label="dmtmm",
             weight=xl_weight,
             linker=ihm.cross_linkers.dsso,
         )
-    )  # Scaling factor for the restraint score.
+    )
 
     output_objects.append(xlr_adh_sampling)
     output_objects.append(xlr_bs3dss_sampling)
@@ -236,16 +236,16 @@ def modeling(output_dir, topology_file, h_param_file):
     xldb_adh_evicalc.create_set_from_file(file_name=evi_adh_xl_data, converter=xldbkc)
     xlr_adh_evicalc = (
         IMP.pmi.restraints.crosslinking.CrossLinkingMassSpectrometryRestraint(
-            root_hier=root_hier,  # Must pass the root hierarchy to the system
-            database=xldb_adh_evicalc,  # The crosslink database.
-            length=25,  # The crosslinker plus side chain length
-            resolution=1,  # The resolution at which to evaluate the crosslink
-            slope=0.0001,  # This adds a linear term to the scoring function
-            label="adh",  #   to bias crosslinks towards each other
+            root_hier=root_hier,
+            database=xldb_adh_evicalc,
+            length=25,
+            resolution=1,
+            slope=0.0001,
+            label="adh",
             weight=0,
             linker=ihm.cross_linkers.edc,
         )
-    )  # Scaling factor for the restraint score.
+    )
 
     xldb_bs3dss_evicalc = IMP.pmi.io.crosslink.CrossLinkDataBase()
     xldb_bs3dss_evicalc.create_set_from_file(
@@ -253,16 +253,16 @@ def modeling(output_dir, topology_file, h_param_file):
     )
     xlr_bs3dss_evicalc = (
         IMP.pmi.restraints.crosslinking.CrossLinkingMassSpectrometryRestraint(
-            root_hier=root_hier,  # Must pass the root hierarchy to the system
-            database=xldb_bs3dss_evicalc,  # The crosslink database.
-            length=25,  # The crosslinker plus side chain length
-            resolution=1,  # The resolution at which to evaluate the crosslink
-            slope=0.0001,  # This adds a linear term to the scoring function
-            label="bs3dss",  #   to bias crosslinks towards each other
+            root_hier=root_hier,
+            database=xldb_bs3dss_evicalc,
+            length=25,
+            resolution=1,
+            slope=0.0001,
+            label="bs3dss",
             weight=0,
             linker=ihm.cross_linkers.bs3,
         )
-    )  # Scaling factor for the restraint score.
+    )
 
     xldb_dmtmm_evicalc = IMP.pmi.io.crosslink.CrossLinkDataBase()
     xldb_dmtmm_evicalc.create_set_from_file(
@@ -270,16 +270,16 @@ def modeling(output_dir, topology_file, h_param_file):
     )
     xlr_dmtmm_evicalc = (
         IMP.pmi.restraints.crosslinking.CrossLinkingMassSpectrometryRestraint(
-            root_hier=root_hier,  # Must pass the root hierarchy to the system
-            database=xldb_dmtmm_evicalc,  # The crosslink database.
-            length=16,  # The crosslinker plus side chain length
-            resolution=1,  # The resolution at which to evaluate the crosslink
-            slope=0.0001,  # This adds a linear term to the scoring function
-            label="dmtmm",  #   to bias crosslinks towards each other
+            root_hier=root_hier,
+            database=xldb_dmtmm_evicalc,
+            length=16,
+            resolution=1,
+            slope=0.0001,
+            label="dmtmm",
             weight=0,
             linker=ihm.cross_linkers.dsso,
         )
-    )  # Scaling factor for the restraint score.
+    )
 
     output_objects.append(xlr_adh_evicalc)
     output_objects.append(xlr_bs3dss_evicalc)
@@ -297,13 +297,12 @@ def modeling(output_dir, topology_file, h_param_file):
     ).get_selected_particles()
 
     emr = IMP.pmi.restraints.em.GaussianEMRestraint(
-        densities,  # Evaluate the restraint using these model densities
-        target_fn=gmm_data,  # The EM map, approximated as a gaussian mixture model (GMM)
-        slope=0.00000001,  # a small linear restraint to pull objects towards the EM map center
-        scale_target_to_mass=True,  # Normalizes the total density of the model wrs: EM map. Only set to true
-        #   if the EM map and "densities" contain the same objects.
+        densities,
+        target_fn=gmm_data,
+        slope=0.00000001,
+        scale_target_to_mass=True,
         weight=0,
-    )  # the scaling factor for the EM score
+    )
 
     output_objects.append(emr)
     nestor_restraints.append(emr)
@@ -352,17 +351,17 @@ def modeling(output_dir, topology_file, h_param_file):
 
     rex = IMP.pmi.macros.ReplicaExchange(
         mdl,
-        root_hier=root_hier,  # pass the root hierarchy
-        # This allows viewing the crosslinks in Chimera. Also, there is not inter-protein ADH crosslink available. Hence it is not mentioned in this list
+        root_hier=root_hier,
+        
         monte_carlo_temperature=1.0,
         replica_exchange_minimum_temperature=1.0,
         replica_exchange_maximum_temperature=rex_max_temp,
-        monte_carlo_sample_objects=dof.get_movers(),  # pass all objects to be moved ( almost always dof.get_movers() )
-        global_output_directory=run_output_dir,  # The output directory for this sampling run.
-        output_objects=output_objects,  # Items in output_objects write information to the stat file.
-        monte_carlo_steps=10,  # Number of MC steps between writing frames
-        number_of_best_scoring_models=0,  # set >0 to store best PDB files (but this is slow)
-        number_of_frames=0,  # Total number of frames to run / write to the RMF file.
+        monte_carlo_sample_objects=dof.get_movers(),
+        global_output_directory=run_output_dir,
+        output_objects=output_objects,
+        monte_carlo_steps=10,
+        number_of_best_scoring_models=0,
+        number_of_frames=0,
         use_nestor=True,
     )
 
