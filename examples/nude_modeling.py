@@ -40,10 +40,10 @@ IMP.setup_from_argv(sys.argv, "Application of NestOR to the NuDe subcomplex")
 # --- remove this section
 
 
-dat_dir = IMP.nestor.get_example_path("input")
-run_output_dir = "run_" + "0" 
-topology_file = os.path.join(dat_dir, "topology50.txt")
-h_param_file = os.path.join(dat_dir, "nestor_params_optrep.yaml")
+dat_dir = IMP.nestor.get_example_path("input")  
+run_output_dir = "run_" + "0"  # sys.argv[1]
+topology_file = os.path.join(dat_dir, "topology50.txt")  # sys.argv[2]
+h_param_file = os.path.join(dat_dir, "nestor_params_optrep.yaml")  # sys.argv[3]
 
 max_shuffle_core = 5
 max_shuffle_set2 = 50
