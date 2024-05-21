@@ -30,14 +30,16 @@ Python module to perform Nested Sampling-based optimization of representation fo
 (See also `examples/`)
 1. We need to split the input restraints into two subsets: one for sampling and one for evidence calculation. We recommend 30% of input crosslinks for the sampling subset, and the rest of the crosslinks and all the EM and other restraints for the evidence calculation subset. Use this helper script to split the input crosslinks into the sampling and evidence calculation subsets: `python pyext/src/xl_datasplitter.py {path}` where, path refers to the path of the target crosslinking file.
 2. Make the modeling script in the form as shown in the `examples/modeling.py`. One will also need to make separate topology files for different candidate representations.  
-   _* Make sure that the restraints that are to be used to inform the likelihood have `weight=0`, and these are added to a separate list that is passed to the replica exchange macro as `nestor_restraints` argument_.  
-   _* Ensure the modeling script looks similar to the one in `example/`. Specifically, ensure that the modeling instructions are enclosed in a function that is called so that the terminal stdout of the modeling is not returned to the terminal. One can use `contextlib` as shown in the example._
+   * _Make sure that the restraints that are to be used to inform the likelihood have `weight=0`, and these are added to a separate list that is passed to the replica exchange macro as `nestor_restraints` argument_.  
+   * _Ensure the modeling script looks similar to the one in `example/`. Specifically, ensure that the modeling instructions are enclosed in a function that is called so that the terminal stdout of the modeling is not returned to the terminal. One can use `contextlib` as shown in the example._
 4. Set appropriate parameters in the `nestor_params.yaml` file.
 
 ### Run command
 
 **Run the NestOR wrapper as follows:**  
+
 ```python pyext/src/wrapper_v6.py -p {nestor_param_path}```
+
 where, `nestor_param_path` refers to the absolute path to the `nestor_params.yaml`file. If using topology file for representing the system, use `-t` flag. This flag can be ommitted if the representation is defined in the modeling script. If only the plotting functionalities of NestOR are to be used, run the above command with `-s` flag.
 
 
@@ -93,16 +95,22 @@ This file is generated upon completion of step 1 in the `Run command` above.
 - Exit code 12: Run terminated as NestOR ran out of maximum allowed iterations. The run will not be restarted.  
 - Exit code 13: Run  terminated due to *Math domain error* in analytical uncertainty calculation. This happened probably because the run terminated too early resulting in a negative value for H.
 
-**_If a run terminates with `exit code = 12`, the run is considered incomplete (and is not rerun) and its results are not considered valid, i.e. these are not plotted and not used to infer optimal representation. Results from runs with exit codes 0 and 13 are used to infer the optimal representation_**
+**If a run terminates with `exit code = 12`, the run is considered incomplete (and is not rerun) and its results are not considered valid, i.e. these are not plotted and not used to infer optimal representation. Results from runs with exit codes 0 and 13 are used to infer the optimal representation.**
 
 
 ## Information
 **Author(s):** Shreyas Arvindekar, Shruthi Viswanath  
+
 **Date**: April 7th, 2023  
+
 **License:** [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 This work is licensed under the Creative Commons Attribution-ShareAlike 4.0
 International License.  
+
 **Last known good IMP version:** `not tested`   
+
 **Testable:** Yes  
+
 **Parallelizeable:** Yes  
+
 **Publications:**  Arvindekar, S., Viswanath, S. Optimizing representations for integrative structural modeling using bayesian model selection. DOI: [10.1093/bioinformatics/btae106](https://doi.org/10.1093/bioinformatics/btae106).     
