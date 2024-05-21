@@ -22,7 +22,7 @@ Python module to perform Nested Sampling-based optimization of representation fo
 ### Inputs
 
 (See also `examples/`)
-1. We need to split the input restraints into two subsets: one for sampling and one for evidence calculation. We recommend 30% of input crosslinks for the sampling subset, and the rest of the crosslinks and all the EM and other restraints for the evidence calculation subset. Use this helper script to split the input crosslinks into the sampling and evidence calculation subsets: `python pyext/src/xl_datasplitter.py {path}` where, path refers to the path of the target crosslinking file.
+1. We need to split the input restraints into two subsets: one for sampling and one for evidence calculation. We recommend 30% of input crosslinks for the sampling subset, and the rest of the crosslinks and all the EM and other restraints for the evidence calculation subset. Use this helper script to split the input crosslinks into the sampling and evidence calculation subsets: `python -m IMP.nestor.xl_datasplitter {path}` where, path refers to the path of the target crosslinking file.
 2. Make the modeling script in the form as shown in the `examples/modeling.py`. One will also need to make separate topology files for different candidate representations.  
    * _Make sure that the restraints that are to be used to inform the likelihood have `weight=0`, and these are added to a separate list that is passed to the replica exchange macro as `nestor_restraints` argument_.  
    * _Ensure the modeling script looks similar to the one in `example/`. Specifically, ensure that the modeling instructions are enclosed in a function that is called so that the terminal stdout of the modeling is not returned to the terminal. One can use `contextlib` as shown in the example._
@@ -32,14 +32,14 @@ Python module to perform Nested Sampling-based optimization of representation fo
 
 **Run the NestOR wrapper as follows:**  
 
-```python pyext/src/wrapper_v6.py -p {nestor_param_path}```
+```python -m IMP.nestor.wrapper_v6 -p {nestor_param_path}```
 
 where, `nestor_param_path` refers to the absolute path to the `nestor_params.yaml`file. If using topology file for representing the system, use `-t` flag. This flag can be ommitted if the representation is defined in the modeling script. If only the plotting functionalities of NestOR are to be used, run the above command with `-s` flag.
 
 
 **Note**
 _One_ `NestOR run` corresponds to the set of all nested sampling runs for all candidate representations._
-One can also compare results from `NestOR runs` with different parameter settings by running `python pyext/src/compare_runs_v2_w_pyplot.py {comparison_title} run_set1 run_set2 ...` where comparison_title is the title for the runs to be compared, run_set1 and run_set2 are the NestOR runs to be compared.
+One can also compare results from `NestOR runs` with different parameter settings by running `python -m IMP.nestor.compare_runs_v2_w_pyplot {comparison_title} run_set1 run_set2 ...` where comparison_title is the title for the runs to be compared, run_set1 and run_set2 are the NestOR runs to be compared.
 
 ## Outputs
 
