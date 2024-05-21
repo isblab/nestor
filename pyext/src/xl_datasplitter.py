@@ -1,7 +1,6 @@
-'''
-Given an CSV file for XLs in Protein1,Residue1,Protein2,Residue2 format,
-this script will split it in the given ratio for use in Nested Sampling
-'''
+"""@namespace IMP.nestor.xl_datasplitter
+   Script to split a CSV file for use in nested sampling"""
+
 import sys
 import random
 

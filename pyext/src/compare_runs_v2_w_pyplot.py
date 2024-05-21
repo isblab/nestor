@@ -1,3 +1,6 @@
+"""@namespace IMP.nestor.compare_runs_v2_w_pyplot
+   Plotting script to compare NestOR runs"""
+
 import os
 import sys
 import math

@@ -1,3 +1,6 @@
+"""@namespace IMP.nestor.wrapper_v6
+   Top-level NestOR script"""
+
 import os
 import yaml
 import math
