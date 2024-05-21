@@ -14,14 +14,8 @@ Python module to perform Nested Sampling-based optimization of representation fo
 * Data is deposited in [Zenodo](https://www.doi.org/10.5281/zenodo.10360718)
 
 
-## Installation:
-### Dependencies:  
-* IMP (compiled from the source code). See [IMP installation](https://github.com/salilab/imp)
+## Dependencies:
 * See `requirements.txt` for Python dependencies
-
-### NestOR installation:  
-1. Compile IMP from the souce code to your choice of directory
-2. Clone this repository and replace `imp/modules/nestor/` with it
 
 ## Running NestOR:
 
