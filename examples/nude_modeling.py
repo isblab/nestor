@@ -68,7 +68,11 @@ em_weight = 1000.0
 
 def modeling(output_dir, topology_file, h_param_file):
     mdl = IMP.Model()
-    t = IMP.pmi.topology.TopologyReader(topology_file)
+    t = IMP.pmi.topology.TopologyReader(
+        topology_file,
+        pdb_dir=os.path.join(dat_dir, 'pdb'),
+        fasta_dir=os.path.join(dat_dir, 'fasta'),
+        gmm_dir=os.path.join(dat_dir, 'gmm'))
     bs = IMP.pmi.macros.BuildSystem(mdl)
     bs.add_state(t)
 
