@@ -31,15 +31,6 @@ import sys
 
 IMP.setup_from_argv(sys.argv, "Application of NestOR to the NuDe subcomplex")
 
-
-# --- remove this section
-# print("This example does not work out of the box. Please read the README "
-#       "file to obtain necessary inputs and then remove this section "
-#       "of the script.")
-# sys.exit(0)
-# --- remove this section
-
-
 dat_dir = IMP.nestor.get_example_path("input")  
 run_output_dir = "run_" + "0"  # sys.argv[1]
 topology_file = os.path.join(dat_dir, "topology50.txt")  # sys.argv[2]
