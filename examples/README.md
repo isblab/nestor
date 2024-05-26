@@ -14,8 +14,10 @@ The `nude_modeling.py` script is also adapted from the [Integrative model of the
 The `nestor_output.yaml` contains an example output for the given setup. In addition to this file, NestOR also saves a model from each iteration. These models are not included here due to space constraints. It also generates plots visualizing the log(evidence) (mean and standard error on the mean) (`examples/trial_optrep_params_evidence_errorbarplot.png`), MCMC per step sampling time (`examples/trial_optrep_params_persteptime.png`), NestOR total process time (`examples/trial_optrep_params_proctime.png`) and per step MCMC sampling time and log(evidence) together for all candidate representations (`examples/sterr_evi_and_proctime.png`). 
 
 ## Running nested sampling on this example
-For this example, the user only needs to run 
+For this example, the user may choose to run a single Nested Sampling run as follows. 
 ```
 {path_to_IMP_installation} python nude_modeling.py
 ``` 
-This command will run one nested sampling run. However, for use with the `wrapper_v{x}.py` the user will need to use modify this `nude_modeling.py` a bit to use command-line arguments. In the current form, the command line arguments have been hard coded in `nude_modeling.py`. The user will need to make these `sys.argv` in the correct order for the wrapper to work. Please see the comments in the `nude_modeling.py` for more details.
+This command will run one nested sampling run. 
+
+For use with the `wrapper_v{x}.py` the user will need to use modify the `nude_modeling.py` a bit to use command-line arguments. The user will need to convert the hard coded arguments in this script to `sys.argv` arguments in the correct order for the wrapper to work. Please see the comments in the `nude_modeling.py` for more details. Once the change is made, the user may run NestOR with the wrapper script by running the `example.sh` script
