@@ -129,7 +129,8 @@ def plotter(results: dict, h_params):
     plt.ylabel("Nested sampling process time")
     plt.savefig(
         os.path.join(
-            h_params["parent_dir"], f"trial_{h_params['trial_name']}_proctime.png"
+            h_params["parent_dir"],
+            f"trial_{h_params['trial_name']}_proctime.png",
         )
     )
 
@@ -142,7 +143,8 @@ def plotter(results: dict, h_params):
     plt.ylabel("Mean time per MCMC step")
     plt.savefig(
         os.path.join(
-            h_params["parent_dir"], f"trial_{h_params['trial_name']}_persteptime.png"
+            h_params["parent_dir"],
+            f"trial_{h_params['trial_name']}_persteptime.png",
         )
     )
 
