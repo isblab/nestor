@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """@namespace IMP.nestor.xl_datasplitter
    Script to split a CSV file for use in nested sampling"""
 
@@ -9,9 +10,9 @@ perc_to_evi = 0.7
 
 xls = []
 header = None
-with open(xl_file, 'r') as xlf:
+with open(xl_file, "r") as xlf:
     for ln in xlf.readlines():
-        if (not ln.startswith('Protein1')) and (not ln.startswith('Linker')):
+        if (not ln.startswith("Protein1")) and (not ln.startswith("Linker")):
             xls.append(ln)
         else:
             header = ln
@@ -24,19 +25,19 @@ for link in xls:
     else:
         sampling.append(link)
 
-fname = xl_file.split('/')[-1]
-dir_path = xl_file.split('/')
+fname = xl_file.split("/")[-1]
+dir_path = xl_file.split("/")
 if len(dir_path) > 1:
-    dir_path = '/'.join(dir_path[0:-1])
+    dir_path = "/".join(dir_path[0:-1])
 else:
-    dir_path = './'
-with open(f'{dir_path}/sampling_{fname}', 'w') as sf:
+    dir_path = "./"
+with open(f"{dir_path}/sampling_{fname}", "w") as sf:
     if header is not None:
         sf.write(header)
     for lnk in sampling:
         sf.write(lnk)
 
-with open(f'{dir_path}/evicalc_{fname}', 'w') as evif:
+with open(f"{dir_path}/evicalc_{fname}", "w") as evif:
     if header is not None:
         evif.write(header)
     for lnk in evi_calc:

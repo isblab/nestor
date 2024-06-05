@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """@namespace IMP.nestor.wrapper_v6
    Top-level NestOR script"""
 
@@ -64,8 +65,7 @@ def get_curr_processes_and_terminated_runs(processes: dict):
         if proc.returncode == 11 or proc.returncode == 12:
             faulty_runs.append((run_deets, proc))
             if proc.returncode == 11:
-                shutil.rmtree(os.path.join(run_deets[0],
-                                           f"run_{run_deets[1]}"))
+                shutil.rmtree(os.path.join(run_deets[0], f"run_{run_deets[1]}"))
         elif proc.returncode == 0:
             successful_runs.append((run_deets, proc))
 
@@ -129,8 +129,7 @@ def plotter(results: dict, h_params):
     plt.ylabel("Nested sampling process time")
     plt.savefig(
         os.path.join(
-            h_params["parent_dir"],
-            f"trial_{h_params['trial_name']}_proctime.png"
+            h_params["parent_dir"], f"trial_{h_params['trial_name']}_proctime.png"
         )
     )
 
@@ -143,8 +142,7 @@ def plotter(results: dict, h_params):
     plt.ylabel("Mean time per MCMC step")
     plt.savefig(
         os.path.join(
-            h_params["parent_dir"],
-            f"trial_{h_params['trial_name']}_persteptime.png"
+            h_params["parent_dir"], f"trial_{h_params['trial_name']}_persteptime.png"
         )
     )
 
@@ -191,8 +189,7 @@ def run_nested_sampling(h_param_file, topology=True):
                     os.chdir(f"run_{run_id}")
 
                     if topology:
-                        topf = \
-                            f"topology{res.split('/')[-1].split('_')[-1]}.txt"
+                        topf = f"topology{res.split('/')[-1].split('_')[-1]}.txt"
                     else:
                         topf = res.split("/")[-1].split("_")[-1]
 
@@ -241,8 +238,7 @@ def run_nested_sampling(h_param_file, topology=True):
         if len(curr_faulty_runs) != 0:
             for fr, p in curr_faulty_runs:
                 if p.returncode == 11:
-                    print(f"Will relaunch ({fr[0].split('/')[-1]}, "
-                          f"run_{fr[1]})")
+                    print(f"Will relaunch ({fr[0].split('/')[-1]}, " f"run_{fr[1]})")
                     torun.append(fr)
                 elif p.returncode == 12:
                     print(
@@ -375,8 +371,7 @@ def main():
     if not args.skip_calc:
         run_nested_sampling(h_param_file, use_topology)
 
-    with open(os.path.join(h_params["parent_dir"],
-                           "nestor_output.yaml"), "r") as outf:
+    with open(os.path.join(h_params["parent_dir"], "nestor_output.yaml"), "r") as outf:
         results = yaml.safe_load(outf)
 
     if len(list(results.keys())) > 0:

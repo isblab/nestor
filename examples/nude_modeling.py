@@ -31,17 +31,23 @@ import sys
 
 IMP.setup_from_argv(sys.argv, "Application of NestOR to the NuDe subcomplex")
 
-dat_dir = IMP.nestor.get_example_path("input")  
+dat_dir = IMP.nestor.get_example_path("input")
 
-if not os.path.exists(os.path.join(dat_dir, 'gmm/emd_22904.mrc')):
+if not os.path.exists(os.path.join(dat_dir, "gmm/emd_22904.mrc")):
     print("To run this example, first download the EM map from EMD22094,")
     print("extract it, rename it as `emd_22904.mrc` and place it in")
     print("the `input/gmm/` directory.")
     sys.exit(0)
 
-run_output_dir = "run_" + "0"  # sys.argv[1]
-topology_file = os.path.join(dat_dir, "topology50.txt")  # sys.argv[2]
-h_param_file = os.path.join(dat_dir, "nestor_params_optrep.yaml")  # sys.argv[3]
+if len(sys.argv) < 2:
+    print(
+        "Command-line arguments needed to run this script. See the readme for more details"
+    )
+    sys.exit(0)
+
+run_output_dir = "run_" + sys.argv[1]
+topology_file = os.path.join(dat_dir, sys.argv[2])
+h_param_file = os.path.join(dat_dir, sys.argv[3])
 
 max_shuffle_core = 5
 max_shuffle_set2 = 50
@@ -68,9 +74,10 @@ def modeling(output_dir, topology_file, h_param_file):
     mdl = IMP.Model()
     t = IMP.pmi.topology.TopologyReader(
         topology_file,
-        pdb_dir=os.path.join(dat_dir, 'pdb'),
-        fasta_dir=os.path.join(dat_dir, 'fasta'),
-        gmm_dir=os.path.join(dat_dir, 'gmm'))
+        pdb_dir=os.path.join(dat_dir, "pdb"),
+        fasta_dir=os.path.join(dat_dir, "fasta"),
+        gmm_dir=os.path.join(dat_dir, "gmm"),
+    )
     bs = IMP.pmi.macros.BuildSystem(mdl)
     bs.add_state(t)
 
@@ -354,7 +361,6 @@ def modeling(output_dir, topology_file, h_param_file):
     rex = IMP.pmi.macros.ReplicaExchange(
         mdl,
         root_hier=root_hier,
-        
         monte_carlo_temperature=1.0,
         replica_exchange_minimum_temperature=1.0,
         replica_exchange_maximum_temperature=rex_max_temp,

@@ -7,17 +7,14 @@ The `examples/input` comprises of the fasta sequences (`examples/input/fasta`), 
 
 In addition it also comprises the `topology{x}.txt` files that define the representation to be used for running the `nude_modeling.py` modeling script. The `{x}` in the topology file's name corresponds to the number of amino acid residues to be coarse-grained to a single flexible bead for regions that lack a previously characterized structure. In this example, we are comparing the 1, 5, 10, 20, 30 and 50 residues per bead coarse-grained representations of the regions with unknown structure of NuDe sub-complex. It is to be noted that the regions with known structure will be modeled as 1 and 10 residues per bead representation. Importantly, note that *any* representation can be compared as long there is a valid modeling file associated with it (representation can be mentioned via a topology file or manually). 
 
-It also contains the `nestor_params_optrep.yaml` file which defines the NestOR parameters. Each parameter is described in the file itself. 
+It also contains the `examples/input/nestor_params_optrep.yaml` file which defines the NestOR parameters. Each parameter is described in the file itself. 
 
 The `nude_modeling.py` script is also adapted from the [Integrative model of the NuRD subcomplexes](https://github.com/isblab/nurd) repository for use with NestOR.
 
 The `nestor_output.yaml` contains an example output for the given setup. In addition to this file, NestOR also saves a model from each iteration. These models are not included here due to space constraints. It also generates plots visualizing the log(evidence) (mean and standard error on the mean) (`examples/trial_optrep_params_evidence_errorbarplot.png`), MCMC per step sampling time (`examples/trial_optrep_params_persteptime.png`), NestOR total process time (`examples/trial_optrep_params_proctime.png`) and per step MCMC sampling time and log(evidence) together for all candidate representations (`examples/sterr_evi_and_proctime.png`). 
 
 ## Running nested sampling on this example
-For this example, the user may choose to run a single Nested Sampling run as follows. 
+For this example, the user may run NestOR as follows:
 ```
-{path_to_IMP_installation} python nude_modeling.py
-``` 
-This command will run one nested sampling run. 
-
-For use with the `wrapper_v{x}.py` the user will need to use modify the `nude_modeling.py` a bit to use command-line arguments. The user will need to convert the hard coded arguments in this script to `sys.argv` arguments in the correct order for the wrapper to work. Please see the comments in the `nude_modeling.py` for more details. Once the change is made, the user may run NestOR with the wrapper script by running the `example.sh` script
+python -m "IMP.wrapper_v{x} -p {path_to_param_file}
+```
