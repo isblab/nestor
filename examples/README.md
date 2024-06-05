@@ -7,7 +7,7 @@ The `examples/input` comprises of the fasta sequences (`examples/input/fasta`), 
 
 In addition it also comprises the `topology{x}.txt` files that define the representation to be used for running the `nude_modeling.py` modeling script. The `{x}` in the topology file's name corresponds to the number of amino acid residues to be coarse-grained to a single flexible bead for regions that lack a previously characterized structure. In this example, we are comparing the 1, 5, 10, 20, 30 and 50 residues per bead coarse-grained representations of the regions with unknown structure of NuDe sub-complex. It is to be noted that the regions with known structure will be modeled as 1 and 10 residues per bead representation. Importantly, note that *any* representation can be compared as long there is a valid modeling file associated with it (representation can be mentioned via a topology file or manually). 
 
-It also contains the `examples/input/nestor_params_optrep.yaml` file which defines the NestOR parameters. Each parameter is described in the file itself. 
+It also contains the `examples/input/nestor_params_optrep.yaml` NestOR parameter file which defines the NestOR parameters. Each parameter is described in the file itself. 
 
 The `nude_modeling.py` script is also adapted from the [Integrative model of the NuRD subcomplexes](https://github.com/isblab/nurd) repository for use with NestOR.
 
@@ -16,5 +16,5 @@ The `nestor_output.yaml` contains an example output for the given setup. In addi
 ## Running nested sampling on this example
 For this example, the user may run NestOR as follows:
 ```
-python -m "IMP.wrapper_v{x} -p {path_to_param_file}
+python -m "IMP.wrapper_v{x} -p {path_to_NestOR_param_file}
 ```
