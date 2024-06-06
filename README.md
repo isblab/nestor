@@ -109,4 +109,4 @@ __Testable:__ Yes
 
 __Parallelizeable:__ Yes
 
-__Publications:__  Arvindekar, S., Viswanath, S. Optimizing representations for integrative structural modeling using bayesian model selection. DOI: [10.1093/bioinformatics/btae106](https://doi.org/10.1093/bioinformatics/btae106).
+__Publications:__  Arvindekar, S., _et_. al. Optimizing representations for integrative structural modeling using bayesian model selection. DOI: [10.1093/bioinformatics/btae106](https://doi.org/10.1093/bioinformatics/btae106).
