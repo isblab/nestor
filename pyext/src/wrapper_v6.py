@@ -65,7 +65,9 @@ def get_curr_processes_and_terminated_runs(processes: dict):
         if proc.returncode == 11 or proc.returncode == 12:
             faulty_runs.append((run_deets, proc))
             if proc.returncode == 11:
-                shutil.rmtree(os.path.join(run_deets[0], f"run_{run_deets[1]}"))
+                shutil.rmtree(
+                    os.path.join(run_deets[0], f"run_{run_deets[1]}"),
+                )
         elif proc.returncode == 0:
             successful_runs.append((run_deets, proc))
 
@@ -108,7 +110,11 @@ def plotter(results: dict, h_params):
         avg_logz = np.mean(log_z)
         stderr_logz = np.std(log_z) / math.sqrt(len(log_z))
         plt.errorbar(
-            resolution[4:], avg_logz, yerr=stderr_logz, fmt="o", c="dodgerblue"
+            resolution[4:],
+            avg_logz,
+            yerr=stderr_logz,
+            fmt="o",
+            c="dodgerblue",
         )
 
     plt.xlabel("Resolutions")
@@ -373,7 +379,13 @@ def main():
     if not args.skip_calc:
         run_nested_sampling(h_param_file, use_topology)
 
-    with open(os.path.join(h_params["parent_dir"], "nestor_output.yaml"), "r") as outf:
+    with open(
+        os.path.join(
+            h_params["parent_dir"],
+            "nestor_output.yaml",
+        ),
+        "r",
+    ) as outf:
         results = yaml.safe_load(outf)
 
     if len(list(results.keys())) > 0:
