@@ -114,9 +114,8 @@ def plot_sterr(results: dict):
         for run_set in results[parent]:  # runset is res_01
             log_evi = []
             for run in results[parent][run_set]:
-                log_evi.append(
-                    float(results[parent][run_set][run]["log_estimated_evidence"])
-                )
+                r_temp = results[parent][run_set][run]
+                log_evi.append(float(r_temp["log_estimated_evidence"]))
             stderr_log_evi = np.std(log_evi) / (math.sqrt(len(log_evi)))
             x_vals.append(run_set)
             y_vals.append(stderr_log_evi)

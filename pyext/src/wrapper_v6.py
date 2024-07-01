@@ -197,7 +197,8 @@ def run_nested_sampling(h_param_file, topology=True):
                     os.chdir(f"run_{run_id}")
 
                     if topology:
-                        topf = f"topology{res.split('/')[-1].split('_')[-1]}.txt"
+                        topf = f"topology{res.split('/')[-1].split('_')[-1]}\
+                            .txt"
                     else:
                         topf = res.split("/")[-1].split("_")[-1]
 
@@ -246,7 +247,11 @@ def run_nested_sampling(h_param_file, topology=True):
         if len(curr_faulty_runs) != 0:
             for fr, p in curr_faulty_runs:
                 if p.returncode == 11:
-                    print(f"Will relaunch ({fr[0].split('/')[-1]}, " f"run_{fr[1]})")
+                    print(
+                        f"Will relaunch \
+                          ({fr[0].split('/')[-1]}, "
+                        f"run_{fr[1]})"
+                    )
                     torun.append(fr)
                 elif p.returncode == 12:
                     print(
