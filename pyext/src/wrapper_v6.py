@@ -76,7 +76,7 @@ def get_curr_processes_and_terminated_runs(processes: dict):
             f"Terminated: {run[0].split('/')[-1]}, run_{run[1]} with "
             f"exit code: {processes[run].returncode}"
         )
-        if processes[run].returncode != 0:
+        if processes[run].returncode != 0: 
             print(f"Error:\n{processes[run].stderr.read()}")
 
         processes.pop(run)
