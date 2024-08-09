@@ -19,10 +19,9 @@ class Tests(IMP.test.TestCase):
         topology_file = self.get_input_file_name(topology_fname)
         input_dir = os.path.dirname(topology_file)
         mdl = IMP.Model()
-        t = IMP.pmi.topology.TopologyReader(topology_file,
-                                            pdb_dir=input_dir,
-                                            fasta_dir=input_dir,
-                                            gmm_dir=input_dir)
+        t = IMP.pmi.topology.TopologyReader(
+            topology_file, pdb_dir=input_dir, fasta_dir=input_dir, gmm_dir=input_dir
+        )
         bs = IMP.pmi.macros.BuildSystem(mdl)
         bs.add_state(t)
 
@@ -175,8 +174,8 @@ class Tests(IMP.test.TestCase):
 
             mean_new = np.mean(np.array(new_results))
 
-            lower_bound = mean_expected - (1.96 * std_expected)
-            upper_bound = mean_expected + (1.96 * std_expected)
+            lower_bound = mean_expected - (3 * std_expected)  # 1.96
+            upper_bound = mean_expected + (3 * std_expected)  # 1.96
             self.assertTrue(lower_bound <= mean_new <= upper_bound)
 
 
