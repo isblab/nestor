@@ -2,7 +2,7 @@
 
 [![PubMed](https://salilab.org/imp-systems/static/images/pubmed.png)](https://pubmed.ncbi.nlm.nih.gov/38391029/)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10360718.svg)](https://doi.org/10.5281/zenodo.10360718)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo-blue.svg)](https://doi.org/10.5281/zenodo.10360718)
 
 
 # NestOR: Nested Sampling-based Optimization of Representation for Integrative Structural Modeling
